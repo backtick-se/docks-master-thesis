@@ -1,13 +1,15 @@
 from os import listdir
 from os.path import isfile, isdir
-import numpy as np
-from tqdm import tqdm
-
+from uuid import uuid1
+import random
+from ast import parse, unparse
+from visitor import Visitor
 class Extractor:
 
 	def __init__(self, fileType: str):
 		self.fileType = fileType
 
+	# Find all files under start directory
 	def find_files(self, start: str):
 		files = []
 
@@ -23,6 +25,7 @@ class Extractor:
 	
 		return files
 	
+	# Get the contents of a file as string
 	def get_content(self, file: str, skipError: bool=True):
 		if not isfile(file):
 			raise ValueError(f'{file} is not a file')
@@ -34,12 +37,30 @@ class Extractor:
 			if skipError: print(f'Parsing error, skipping file: {file}, {e}')
 			else: raise e
 	
-	def extract(self, dir: str):
+	# Extract all methods and their project context from directory
+	def extract(self, dir: str, n_files: int = 10, n_funcs: int = 10):
 		if not isdir(dir):
 			raise ValueError(f'{dir} is not a directory')
+
+		# Find all files + id
+		paths = self.find_files(dir)
+
+		# Find all functions
+		path_to_funcs = lambda p: Visitor.get_functions(self.get_content(p))
+		funcs = [*map(path_to_funcs, paths)]
+
+		return paths, funcs
 		
-		files = self.find_files(dir)
-		return np.array([self.get_content(f) for f in tqdm(files)])
+		# Map function to file
+		# Choose n_files random files
+		# Extract n_funcs from each file
+		# Save context as {function_id: [context_function_id]}
+
+		#context_files = random.sample(files, min(n_files, len(files)))
+		#context = {}
+
+		#for path in n_files:
+			#context[]
 
 		
 
