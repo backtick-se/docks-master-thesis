@@ -1,8 +1,5 @@
 from os import listdir
 from os.path import isfile, isdir
-from uuid import uuid1
-import random
-from ast import parse, unparse
 from visitor import Visitor
 class Extractor:
 
@@ -46,7 +43,13 @@ class Extractor:
 		paths = self.find_files(dir)
 
 		# Find all functions
-		path_to_funcs = lambda p: Visitor.get_functions(self.get_content(p))
+		def path_to_funcs(path):
+			try:
+				return Visitor.get_functions(self.get_content(path))
+			except Exception as e:
+				print(f'Error parsing file {path}: {e}')
+				return []
+				
 		funcs = [*map(path_to_funcs, paths)]
 
 		return paths, funcs

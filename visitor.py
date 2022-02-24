@@ -16,4 +16,19 @@ class Visitor(ast.NodeVisitor):
 		tree = ast.parse(code)
 		visi = Visitor()
 		visi.visit(tree)
-		return [(func.name, ast.unparse(func)) for func in visi.functions]
+
+		def process(node):
+			name = node.name
+
+			firstnode = node.body[0]
+			isexpr = type(firstnode) is ast.Expr
+
+			if isexpr and type(firstnode.value) is ast.Constant:
+				node.body = node.body[1:]
+			
+			
+			code = ast.unparse(node)
+			
+			return name, code
+
+		return [*map(process, visi.functions)]
