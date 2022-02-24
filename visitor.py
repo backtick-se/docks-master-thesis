@@ -29,16 +29,17 @@ class Visitor(ast.NodeVisitor):
 		def process(node):
 			name = node.name
 
-			# Remove docstring
-			firstnode = node.body[0]
-			isexpr = type(firstnode) is ast.Expr
+			# Extract docstring
+			fnode = node.body[0]
+			isexpr = type(fnode) is ast.Expr
 
-			if isexpr and type(firstnode.value) is ast.Constant:
+			if isexpr and type(fnode.value) is ast.Constant:
 				node.body = node.body[1:]
-			
-			
-			code = ast.unparse(node)
-			
-			return name, code
 
-		return [*map(process, visi.functions)]
+				docstr = fnode.value.value
+				code = ast.unparse(node)
+				return name, code, docstr
+			
+			return None
+
+		return [*filter(lambda e: e != None, map(process, visi.functions))]

@@ -34,8 +34,8 @@ class Extractor:
 			if skipError: print(f'Parsing error, skipping file: {file}, {e}')
 			else: raise e
 	
-	# Extract all methods and their project context from directory
-	def extract(self, dir: str, n_files: int = 10, n_funcs: int = 10):
+	# Extract all functions from directory
+	def extract(self, dir: str):
 		if not isdir(dir):
 			raise ValueError(f'{dir} is not a directory')
 

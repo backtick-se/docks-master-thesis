@@ -21,14 +21,15 @@ def get_release_functions(url: str, name: str = uuid1()):
 		paths, funcs = Extractor('py').extract(cwd)
 		
 		for path, funclist in zip(paths, funcs):
-			for name, code in funclist:
+			for name, code, docstr in funclist:
 				id = f'{path}: {name}'
+				value = (code, docstr)
 				
 				if id in data.keys():
-					data[id][tag] = code
+					data[id][tag] = value
 				else:
 					data[id] = {
-						tag: code
+						tag: value
 					}
 	
 	return data
@@ -41,7 +42,7 @@ if __name__ == '__main__':
 		unique = set(value.values())
 		if len(unique) > 1: data[key] = unique
 
-	with open('funcdata.pickle', 'wb') as f:
+	with open('funcdata_no_methods.pickle', 'wb') as f:
 		pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 
