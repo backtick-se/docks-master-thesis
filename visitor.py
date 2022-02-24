@@ -5,7 +5,16 @@ class Visitor(ast.NodeVisitor):
 		self.functions = []
 
 	def visit_FunctionDef(self, node):
-		self.functions.append(node)
+
+		try:
+			firstarg = node.args.args[0].arg
+		except:
+			firstarg = None
+
+		# Skip methods
+		if firstarg != 'self':
+			self.functions.append(node)
+
 		self.generic_visit(node)
 		
 	def visit_AsyncFunctionDef(self, node):
@@ -20,6 +29,7 @@ class Visitor(ast.NodeVisitor):
 		def process(node):
 			name = node.name
 
+			# Remove docstring
 			firstnode = node.body[0]
 			isexpr = type(firstnode) is ast.Expr
 
