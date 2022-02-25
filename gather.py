@@ -47,8 +47,15 @@ def get_data(repo: str, out: str):
 	data = {}
 	
 	for key, value in funcdata.items():
-		unique = set(value.values())
-		if len(unique) > 1: data[key] = unique
+		funs = []
+		docs = []
+
+		for fun, doc in value.values():
+			if doc not in docs and fun not in funs:
+				funs.append(fun)
+				docs.append(doc)
+
+		if len(funs) > 1: data[key] = zip(funs, docs)
 
 	with open(f'{out}.pickle', 'wb') as f:
 		pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
