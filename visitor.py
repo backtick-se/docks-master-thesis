@@ -1,4 +1,5 @@
 import ast
+import copy
 
 class Visitor(ast.NodeVisitor):
 	def __init__(self):
@@ -34,11 +35,13 @@ class Visitor(ast.NodeVisitor):
 			isexpr = type(fnode) is ast.Expr
 
 			if isexpr and type(fnode.value) is ast.Constant:
-				node.body = node.body[1:]
+				func = copy.deepcopy(node)
+				func.body = node.body[1:]
 
 				docstr = fnode.value.value
-				code = ast.unparse(node)
-				return name, code, docstr
+				code = ast.unparse(func)
+				codewithdoc = ast.unparse(node)
+				return name, code, docstr, codewithdoc
 			
 			return None
 

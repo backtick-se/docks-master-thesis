@@ -5,3 +5,6 @@ def load(file):
 		data = pickle.load(f)
 
 	return data
+
+def load_data():
+	return load('funcdata.pickle')
