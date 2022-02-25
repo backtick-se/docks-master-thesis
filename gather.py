@@ -3,15 +3,17 @@ import subprocess
 from os import getcwd
 from uuid import uuid1
 from extract import Extractor
+import click
+import re
 
-def get_release_functions(url: str, name: str = uuid1()):
+def get_release_functions(url: str, name: str):
 	cwd = f'{getcwd()}/{name}'
 	
 	subprocess.run(f'git clone {url} {cwd}', shell=True)
 	subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
 	
 	with open(f'{cwd}/tags.txt') as f:
-		tags = f.read().split('\n')
+		tags = f.read().split('\n')[:-1]
 	
 	data = {}
 	
@@ -32,17 +34,26 @@ def get_release_functions(url: str, name: str = uuid1()):
 						tag: value
 					}
 	
+	subprocess.run(f'rm -rf {cwd}', shell=True)
+	
 	return data
 
-if __name__ == '__main__':
-	funcdata = get_release_functions('https://github.com/pallets/click.git', 'click')
+@click.command()
+@click.option('--repo')
+@click.option('--out', default='funcdata')
+def get_data(repo: str, out: str):
+	name = re.search('.*\/(.*).git', repo).group(1)
+	funcdata = get_release_functions(repo, name)
 	data = {}
 	
 	for key, value in funcdata.items():
 		unique = set(value.values())
 		if len(unique) > 1: data[key] = unique
 
-	with open('funcdata_no_methods.pickle', 'wb') as f:
+	with open(f'{out}.pickle', 'wb') as f:
 		pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+if __name__ == '__main__':
+	get_data()
 
 
