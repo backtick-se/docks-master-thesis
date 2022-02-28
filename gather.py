@@ -53,7 +53,7 @@ def get_data(repo: str, out: str):
 		fund = []
 
 		for fun, doc, codewithdoc in value.values():
-			if ast.parse(fun) not in [*map(ast.parse, funs)] and doc not in docs:
+			if fun not in funs and doc not in docs:
 				funs.append(fun)
 				docs.append(doc)
 				fund.append(codewithdoc)
