@@ -4,6 +4,16 @@ class Visitor(ast.NodeVisitor):
 	def __init__(self):
 		self.names = []
 
+	# def visit_FunctionDef(self, node):
+	# 	self.names.append(node.name)
+	# 	self.generic_visit(node)
+	
+	# def visit_ClassDef(self, node):
+	# 	self.visit_FunctionDef(node)
+	
+	# def visit_AsyncFunctionDef(self, node):
+	# 	self.visit_FunctionDef(node)
+
 	def generic_visit(self, node):
 		try:
 			self.names.append(node.name)
@@ -20,4 +30,4 @@ class Visitor(ast.NodeVisitor):
 		visi = Visitor()
 		visi.visit(tree)
 
-		return [*map(lambda nn: nn.id, visi.names)]
+		return visi.names
