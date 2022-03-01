@@ -16,7 +16,7 @@ class Visitor(ast.NodeVisitor):
 
 	def generic_visit(self, node):
 		try:
-			self.names.append(node.name)
+			if node.name: self.names.append(node.name)
 		except:
 			pass
 		
