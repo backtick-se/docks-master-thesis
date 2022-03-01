@@ -4,7 +4,7 @@ import copy
 class Visitor(ast.NodeVisitor):
 	def __init__(self):
 		self.functions = []
-
+	
 	def visit_FunctionDef(self, node):
 
 		# try:
