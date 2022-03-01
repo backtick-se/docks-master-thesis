@@ -1,11 +1,11 @@
 import pickle
 import subprocess
 from os import getcwd
-from uuid import uuid1
 from extract import Extractor
+from visit import Visitor
 import click
 import re
-import ast
+import base64
 
 def get_release_functions(url: str, name: str):
 	cwd = f'{getcwd()}/{name}'
@@ -16,49 +16,54 @@ def get_release_functions(url: str, name: str):
 	with open(f'{cwd}/tags.txt') as f:
 		tags = f.read().split('\n')[:-1]
 	
-	data = {}
+	ids, funcs = [], []
 	
 	for tag in tags:
 		subprocess.run(f'git checkout tags/{tag}', shell=True, cwd=cwd)
+
+		# List of paths, list of contents
+		# List of tuples (name, code, docstr, code with docstr)
+		paths, contents = Extractor('py').extract(cwd)
+		funcdata = [*map(Visitor.get_functions, contents)]
 		
-		paths, funcs = Extractor('py').extract(cwd)
-		
-		for path, funclist in zip(paths, funcs):
-			for name, code, docstr, codewithdoc in funclist:
-				id = f'{path}: {name}'
-				value = (code, docstr, codewithdoc)
-				
-				if id in data.keys():
-					data[id][tag] = value
+		for path, data in zip(paths, funcdata):
+			for n, c, d, cd in data:
+				id = f'{path}: {n}'
+				value = (c, d, cd)
+
+				if id in ids:
+					i = ids.index(id)
+					funcs[i].append(value)
 				else:
-					data[id] = {
-						tag: value
-					}
+					ids.append(id)
+					funcs.append([value])
 	
 	subprocess.run(f'rm -rf {cwd}', shell=True)
 	
-	return data
+	return funcs, ids
 
 @click.command()
 @click.option('--repo')
 @click.option('--out', default='funcdata')
 def get_data(repo: str, out: str):
 	name = re.search('.*\/(.*).git', repo).group(1)
-	funcdata = get_release_functions(repo, name)
-	data = {}
-	
-	for key, value in funcdata.items():
-		funs = []
-		docs = []
-		fund = []
+	funcs = get_release_functions(repo, name)[0]
 
-		for fun, doc, codewithdoc in value.values():
-			if fun not in funs and doc not in docs:
-				funs.append(fun)
-				docs.append(doc)
-				fund.append(codewithdoc)
+	def process(fdata):
+		codes, docs, codocs = [], [], []
 
-		if len(funs) > 1: data[key] = [*zip(funs, docs, fund)]
+		for c, d, cd in fdata:
+			if c not in codes and d not in docs:
+				codes.append(c)
+				docs.append(d)
+				codocs.append(cd)
+		
+		if len(codes) > 1:
+			return [*zip(codes, docs, codocs)]
+		
+		return None
+
+	data = filter(lambda e: e != None, [*map(process, funcs)])
 
 	with open(f'{out}.pickle', 'wb') as f:
 		pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
