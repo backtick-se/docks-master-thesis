@@ -7,13 +7,6 @@ def try_parent(node):
 		parent = None
 
 	return parent
-
-def get_id(base):
-	try:
-		return base.id
-	except:
-		return base.attr
-
 class Visitor(ast.NodeVisitor):
 	def __init__(self):
 		# (name, superclasses)
@@ -22,7 +15,7 @@ class Visitor(ast.NodeVisitor):
 		self.functions = []
 
 	def visit_ClassDef(self, node):
-		self.classes.append((node.name, [*map(get_id, node.bases)]))
+		self.classes.append((node.name, [base.id for base in node.bases if type(base) is ast.ClassDef]))
 		self.generic_visit(node)
 
 	def visit_FunctionDef(self, node):
