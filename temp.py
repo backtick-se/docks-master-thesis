@@ -12,15 +12,22 @@ class Visitor(ast.NodeVisitor):
 	def __init__(self):
 		# (name, superclasses)
 		self.classes = []
-		# (name, method owner)
+		# (name, owner)
 		self.functions = []
 
 	def visit_ClassDef(self, node):
-		self.classes.append((node.name, [*map(lambda n: n.id, node.bases)], try_parent(node)))
+		self.classes.append((node.name, [*map(lambda n: n.id, node.bases)]))
 		self.generic_visit(node)
 
 	def visit_FunctionDef(self, node):
-		self.functions.append((node.name, try_parent(node)))
+		parent = try_parent(node)
+
+		if parent and type(parent) in [ast.ClassDef, ast.FunctionDef]:
+			owner = parent.name
+		else:
+			owner = None
+
+		self.functions.append((node.name, owner))
 		self.generic_visit(node)
 	
 	def visit_AsyncFunctionDef(self, node):
