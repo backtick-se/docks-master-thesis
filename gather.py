@@ -11,7 +11,7 @@ import re
 quiet_flag = '&> /dev/null'
 
 # Checkout to given tag and extract {extension: (paths, contents)}
-def checkout_extract(tag: str, cwd: str, exts: list[str]):
+def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
 	data = {}
 
 	for ext in exts:
@@ -22,7 +22,7 @@ def checkout_extract(tag: str, cwd: str, exts: list[str]):
 
 # Clone repo an extract all the release tags
 # Checkout all releases and extract {tag: {extension: (paths, contents)}}
-def get_release_data(url: str, exts: list[str]):
+def get_release_data(url: str, exts: tuple[str]):
 	name = re.search('.*\/(.*).git', url).group(1)
 	cwd = f'{getcwd()}/{name}'
 
@@ -40,27 +40,31 @@ def get_release_data(url: str, exts: list[str]):
 
 @click.command()
 @click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
-@click.option('--out', '-o', help='Output file without extension (e.g data/release_data)', default='data/release_data')
-@click.option('--ext', '-e', help='Extensions to look for', multiple=True, default=['py', 'md'])
-def get_data(src: str, out: str, ext: list[str]):
+@click.option('--out', '-o', help='Output folder (defaults to data)', default='data')
+@click.option('--ext', '-e', help='Extensions to look for', multiple=True, default=('py', 'md'))
+def get_data(src: str, out: str, ext: tuple[str]):
 
 	with open(src) as f:
 		repos = f.read().split('\n')
+
+	clen = colored(len(repos), 'green')
+	cext = colored(ext, 'green')
+	click.echo(f'Gathering {cext} data from {clen} repos...\n')
 	
-	def process(repo):
+	for repo in repos:
+		name = re.search('.*\/(.*).git', repo).group(1)
+		
 		crep = colored(repo, 'green')
 		click.echo(f'Processing {crep}')
-		return get_release_data(repo, ext)
 
-	data = {repo: process(repo) for repo in repos}
+		data = get_release_data(repo, ext)
+		outfile = f'{out}/{name}.pickle'
 
-	outfile = f'{out}.pickle'
-	outf = colored(outfile, 'green')
+		outf = colored(outfile, 'green')
+		click.echo(f'Saving to: {outf}\n')
 
-	click.echo(f'\nSaving to: {outf}\n')
-
-	with open(outfile, 'wb') as f:
-		pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+		with open(outfile, 'wb') as f:
+			pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 if __name__ == '__main__':
 	get_data()
