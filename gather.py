@@ -39,12 +39,12 @@ def get_release_data(url: str, exts: list[str]):
 	return data
 
 @click.command()
-@click.option('--source', '-s', help='Source file with extension (e.g repos.txt)')
+@click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
 @click.option('--out', '-o', help='Output file without extension (e.g data/release_data)', default='data/release_data')
 @click.option('--ext', '-e', help='Extensions to look for', multiple=True, default=['py', 'md'])
-def get_data(source: str, out: str, ext: list[str]):
+def get_data(src: str, out: str, ext: list[str]):
 
-	with open(source) as f:
+	with open(src) as f:
 		repos = f.read().split('\n')
 	
 	def process(repo):
