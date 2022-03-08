@@ -52,7 +52,8 @@ def get_data(src: str, out: str, ext: tuple[str]):
 	click.echo(f'Gathering {cext} data from {clen} repos...\n')
 	
 	for repo in repos:
-		name = re.search('.*\/(.*).git', repo).group(1)
+		r = re.search('.*\/(.*)\/(.*).git', repo)
+		name = f'{r.group(1)}-{r.group(2)}'
 		
 		crep = colored(repo, 'green')
 		click.echo(f'Processing {crep}')
