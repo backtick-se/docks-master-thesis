@@ -1,5 +1,5 @@
 from os import listdir
-from os.path import isfile, isdir
+from os.path import isfile, isdir, exists
 class Extractor:
 
 	def __init__(self, file_type: str):
@@ -7,6 +7,11 @@ class Extractor:
 
 	# Find all files under start directory
 	def find_files(self, start: str):
+
+		# Prevent crashes when start is an alias 
+		if not exists(start):
+			return []
+
 		files = []
 
 		for fd in listdir(start):
