@@ -31,6 +31,9 @@ def get_release_data(url: str, exts: tuple[str]):
 	
 	with open(f'{cwd}/tags.txt') as f:
 		tags = f.read().split('\n')[:-1]
+
+	if not tags: 
+		raise ValueError(f'No tags could be extracted from {url}: {tags}')
 	
 	data = {tag: checkout_extract(tag, cwd, exts) for tag in tqdm(tags)}
 
@@ -87,7 +90,12 @@ def get_data(src: str, out: str, ext: tuple[str]):
 		click.echo(f'Processing {crep} -> {outfile}')
 
 		# Get the release data
-		data = get_release_data(repo, ext)
+		try:
+			data = get_release_data(repo, ext)
+		except ValueError:
+			click.echo(colored(f'Error processing {repo}. Skipping...\n', 'red'))
+			continue
+
 		latest, passed, extens, counts = verify(data)
 
 		if passed:
