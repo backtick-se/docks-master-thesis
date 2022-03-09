@@ -4,6 +4,7 @@ from os import getcwd
 from extract import Extractor
 from visit import Visitor
 from termcolor import colored
+from packaging import version
 from tqdm import tqdm
 import click
 import re
@@ -41,7 +42,7 @@ def get_release_data(url: str, exts: tuple[str]):
 @click.command()
 @click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
 @click.option('--out', '-o', help='Output folder (defaults to data)', default='data')
-@click.option('--ext', '-e', help='Extensions to look for', multiple=True, default=('py', 'md'))
+@click.option('--ext', '-e', help='Extensions to look for', multiple=True, default=('py', 'md', 'rst'))
 def get_data(src: str, out: str, ext: tuple[str]):
 
 	with open(src) as f:
@@ -52,6 +53,7 @@ def get_data(src: str, out: str, ext: tuple[str]):
 	click.echo(f'Gathering {cext} data from {clen} repos...\n')
 	
 	for repo in repos:
+		# Name for output file (username-reponame)
 		r = re.search('.*\/(.*)\/(.*).git', repo)
 		name = f'{r.group(1)}-{r.group(2)}'
 		
@@ -59,6 +61,16 @@ def get_data(src: str, out: str, ext: tuple[str]):
 		click.echo(f'Processing {crep}')
 
 		data = get_release_data(repo, ext)
+		latest = str(max(map(version.parse, data.keys())))
+
+		counts = ''.join([
+			f'{key}:{len(tup[0])} ' 
+			for key, tup in data[latest].items()
+		])
+
+		ccnt = colored(counts, 'green')
+		click.echo(f'Latest release ({latest}) contains: {ccnt}')
+
 		outfile = f'{out}/{name}.pickle'
 
 		outf = colored(outfile, 'green')

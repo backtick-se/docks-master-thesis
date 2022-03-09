@@ -13,7 +13,7 @@ def filter_sources(file: str):
 
 	filtered = []
 
-	click.echo(f'Reviewing ')
+	click.echo(f'Reviewing {len(urls)} sources')
 
 	for url in urls:
 		if url:
