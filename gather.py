@@ -31,28 +31,32 @@ def get_release_data(url: str, cext: tuple[str], dext: tuple[str]):
 	cwd = f'{getcwd()}/{name}'
 	dwd = f'{cwd}/docs'
 
-	subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
-	subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
+	try:
+		subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
+		subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
 
-	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
-	
-	with open(f'{cwd}/tags.txt') as f:
-		tags = f.read().split('\n')[:-1]
+		clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
+		
+		with open(f'{cwd}/tags.txt') as f:
+			tags = f.read().split('\n')[:-1]
 
-	if not tags or not isdir(dwd):
+		if not tags or not isdir(dwd):
+			raise ValueError(f'Repo must contain docs folder and release tags')
+		
+		data = {
+			tag: {
+				**checkout_extract(tag, cwd, cext),
+				**checkout_extract(tag, dwd, dext)
+			} for tag in tqdm(tags)
+		}
+
 		clean()
-		raise ValueError(f'Repo must contain docs folder and release tags')
-	
-	data = {
-		tag: {
-			**checkout_extract(tag, cwd, cext),
-			**checkout_extract(tag, dwd, dext)
-		} for tag in tqdm(tags)
-	}
+		return data
 
-	clean()
+	except Exception as e:
+		clean()
+		raise e
 
-	return data
 
 @click.command()
 @click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
@@ -77,7 +81,7 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 		# Get the release data
 		try:
 			data = get_release_data(repo, cext, dext)
-		except (ValueError, FileNotFoundError) as e:
+		except ValueError as e:
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
 			continue
 
