@@ -1,9 +1,10 @@
 import pickle
 import subprocess
 from os import getcwd
+from os.path import isdir
 from extract import Extractor
 from visit import Visitor
-from termcolor import colored
+from termcolor import colored as c
 from packaging import version
 from tqdm import tqdm
 import click
@@ -13,7 +14,10 @@ quiet_flag = '&> /dev/null'
 
 # Checkout to given tag and extract {extension: (paths, contents)}
 def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
-	subprocess.run(f'git checkout tags/{tag} {quiet_flag}', shell=True, cwd=cwd)
+	try:
+		subprocess.run(f'git checkout tags/{tag} {quiet_flag}', shell=True, cwd=cwd)
+	except FileNotFoundError:
+		return {ext: ([], []) for ext in exts}
 
 	return {
 		ext: Extractor(ext).extract(cwd)
@@ -22,28 +26,84 @@ def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
 
 # Clone repo an extract all the release tags
 # Checkout all releases and extract {tag: {extension: (paths, contents)}}
-def get_release_data(url: str, exts: tuple[str]):
+def get_release_data(url: str, cext: tuple[str], dext: tuple[str]):
 	name = re.search('.*\/(.*).git', url).group(1)
 	cwd = f'{getcwd()}/{name}'
+	dwd = f'{cwd}/docs'
 
 	subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
 	subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
+
+	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
 	
 	with open(f'{cwd}/tags.txt') as f:
 		tags = f.read().split('\n')[:-1]
 
-	if not tags: 
-		raise ValueError(f'No tags could be extracted from {url}: {tags}')
+	if not tags or not isdir(dwd):
+		clean()
+		raise ValueError(f'Repo must contain docs folder and release tags')
 	
-	data = {tag: checkout_extract(tag, cwd, exts) for tag in tqdm(tags)}
+	data = {
+		tag: {
+			**checkout_extract(tag, cwd, cext),
+			**checkout_extract(tag, dwd, dext)
+		} for tag in tqdm(tags)
+	}
 
-	subprocess.run(f'rm -rf {cwd}', shell=True)
+	clean()
 
 	return data
 
+@click.command()
+@click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
+@click.option('--out', '-o', help='Output folder (defaults to data)', default='data')
+@click.option('--cext', '-ce', help='Code extensions to look for', multiple=True, default=['py'])
+@click.option('--dext', '-de', help='Doc extensions to look for', multiple=True, default=['md', 'rst'])
+def get_data(src: str, out: str, cext: list[str], dext: list[str]):
+
+	with open(src) as f:
+		repos = f.read().split('\n')
+
+	click.echo('Gathering {0} data from {1} repos...\n'.format(c(cext + dext, 'green'), c(len(repos), 'green')))
+	
+	for repo in repos:
+		# Name for output file (username-reponame)
+		r = re.search('.*\/(.*)\/(.*).git', repo)
+		name = f'{r.group(1)}-{r.group(2)}'
+		outfile = f'{out}/{name}.pickle'
+		
+		click.echo('Processing {0} -> {1}'.format(c(repo, 'green'), outfile))
+
+		# Get the release data
+		try:
+			data = get_release_data(repo, cext, dext)
+		except (ValueError, FileNotFoundError) as e:
+			click.echo(c(f'{e}. Skipping...\n', 'red'))
+			continue
+
+		latest, extens, counts, *passed = verify(data)
+
+		if False not in passed:
+			# Stringified stats
+			extens = '\t'.join(extens)
+			counts = '\t'.join(map(str, counts))
+
+			click.echo(f'Latest release ({latest}):')
+			click.echo(c(extens, 'green'))
+			click.echo(counts)
+			click.echo()
+
+			with open(outfile, 'wb') as f:
+				pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+		
+		else:
+			indices = [i for i, c in enumerate(passed) if c == False]
+			click.echo(c(f'Data did not pass verification {indices}. Discarding...\n', 'red'))
+
 # Verify release data with specific criterion
 def verify(data):
-	amtrsh = 1000 # Characters
+	char_thresh = 1000
+	file_thresh = 1
 	docext = ['md', 'rst']
 
 	latest = sorted(data.keys(), key=version.parse)[-1]
@@ -65,55 +125,7 @@ def verify(data):
 	for ext in docext:
 		docamt += sum(map(len, data[latest][ext][1]))
 	
-	return latest, docfiles > 0 and docamt > amtrsh, extens, counts
-
-@click.command()
-@click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
-@click.option('--out', '-o', help='Output folder (defaults to data)', default='data')
-@click.option('--ext', '-e', help='Extensions to look for', multiple=True, default=('py', 'md', 'rst'))
-def get_data(src: str, out: str, ext: tuple[str]):
-
-	with open(src) as f:
-		repos = f.read().split('\n')
-
-	clen = colored(len(repos), 'green')
-	cext = colored(ext, 'green')
-	click.echo(f'Gathering {cext} data from {clen} repos...\n')
-	
-	for repo in repos:
-		# Name for output file (username-reponame)
-		r = re.search('.*\/(.*)\/(.*).git', repo)
-		name = f'{r.group(1)}-{r.group(2)}'
-		outfile = f'{out}/{name}.pickle'
-		
-		crep = colored(repo, 'green')
-		click.echo(f'Processing {crep} -> {outfile}')
-
-		# Get the release data
-		try:
-			data = get_release_data(repo, ext)
-		except ValueError:
-			click.echo(colored(f'Error processing {repo}. Skipping...\n', 'red'))
-			continue
-
-		latest, passed, extens, counts = verify(data)
-
-		if passed:
-			# Stringified stats
-			extens = '\t'.join(extens)
-			counts = '\t'.join(map(str, counts))
-
-			cextes = colored(extens, 'green')
-			click.echo(f'Latest release ({latest}):')
-			click.echo(cextes)
-			click.echo(counts)
-			click.echo()
-
-			with open(outfile, 'wb') as f:
-				pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
-		
-		else:
-			click.echo(colored('Data did not pass verification. Discarding...', 'red'))
+	return latest, extens, counts, docfiles >= file_thresh, docamt >= char_thresh
 
 if __name__ == '__main__':
 	get_data()
