@@ -8,6 +8,7 @@ from packaging import version
 from tqdm import tqdm
 import click
 import re
+from load import load
 
 quiet_flag = '&> /dev/null'
 
@@ -32,12 +33,11 @@ def get_release_data(url: str, cext: tuple[str], dext: tuple[str]):
 
 	try:
 		subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
-		subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
 
 		clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
-		
-		with open(f'{cwd}/tags.txt') as f:
-			tags = f.read().split('\n')[:-1]
+
+		release_tags = load('data/release_tags.pickle')
+		tags = list(release_tags[url].keys()) if url in release_tags else []
 
 		if not tags or not isdir(dwd):
 			raise ValueError(f'Repo must contain docs folder and release tags')
