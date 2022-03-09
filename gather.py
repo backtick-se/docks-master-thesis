@@ -102,12 +102,13 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 		
 		else:
 			indices = [i for i, c in enumerate(passed) if c == False]
-			click.echo(c(f'Data did not pass verification {indices}. Discarding...\n', 'red'))
+			click.echo(c(f'Data did not pass criteria {indices}. Discarding...\n', 'red'))
 
-# Verify release data with specific criterion
+# Verify release data with specific criteria
 def verify(data):
 	char_thresh = 1000
 	file_thresh = 1
+	tags_thresh = 2
 	docext = ['md', 'rst']
 
 	latest = sorted(data.keys(), key=version.parse)[-1]
@@ -129,7 +130,14 @@ def verify(data):
 	for ext in docext:
 		docamt += sum(map(len, data[latest][ext][1]))
 	
-	return latest, extens, counts, docfiles >= file_thresh, docamt >= char_thresh
+	return (
+		latest,
+		extens,
+		counts,
+		docfiles >= file_thresh,
+		docamt >= char_thresh,
+		len(data.keys()) > tags_thresh
+	)
 
 if __name__ == '__main__':
 	get_data()
