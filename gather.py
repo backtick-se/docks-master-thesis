@@ -3,7 +3,6 @@ import subprocess
 from os import getcwd
 from os.path import isdir
 from extract import Extractor
-from visit import Visitor
 from termcolor import colored as c
 from packaging import version
 from tqdm import tqdm
@@ -31,28 +30,32 @@ def get_release_data(url: str, cext: tuple[str], dext: tuple[str]):
 	cwd = f'{getcwd()}/{name}'
 	dwd = f'{cwd}/docs'
 
-	subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
-	subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
+	try:
+		subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
+		subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
 
-	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
-	
-	with open(f'{cwd}/tags.txt') as f:
-		tags = f.read().split('\n')[:-1]
+		clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
+		
+		with open(f'{cwd}/tags.txt') as f:
+			tags = f.read().split('\n')[:-1]
 
-	if not tags or not isdir(dwd):
+		if not tags or not isdir(dwd):
+			raise ValueError(f'Repo must contain docs folder and release tags')
+		
+		data = {
+			tag: {
+				**checkout_extract(tag, cwd, cext),
+				**checkout_extract(tag, dwd, dext)
+			} for tag in tqdm(tags)
+		}
+
 		clean()
-		raise ValueError(f'Repo must contain docs folder and release tags')
-	
-	data = {
-		tag: {
-			**checkout_extract(tag, cwd, cext),
-			**checkout_extract(tag, dwd, dext)
-		} for tag in tqdm(tags)
-	}
+		return data
 
-	clean()
+	except Exception as e:
+		clean()
+		raise e
 
-	return data
 
 @click.command()
 @click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
@@ -77,11 +80,11 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 		# Get the release data
 		try:
 			data = get_release_data(repo, cext, dext)
-		except (ValueError, FileNotFoundError) as e:
+		except ValueError as e:
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
 			continue
 
-		latest, extens, counts, *passed = verify(data)
+		latest, extens, counts, *passed = verify(data, dext)
 
 		if False not in passed:
 			# Stringified stats
@@ -90,22 +93,17 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 
 			click.echo(f'Latest release ({latest}):')
 			click.echo(c(extens, 'green'))
-			click.echo(counts)
-			click.echo()
+			click.echo(f'{counts}\n')
 
 			with open(outfile, 'wb') as f:
 				pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 		
 		else:
 			indices = [i for i, c in enumerate(passed) if c == False]
-			click.echo(c(f'Data did not pass verification {indices}. Discarding...\n', 'red'))
+			click.echo(c(f'Data did not pass criteria {indices}. Discarding...\n', 'red'))
 
-# Verify release data with specific criterion
-def verify(data):
-	char_thresh = 1000
-	file_thresh = 1
-	docext = ['md', 'rst']
-
+# Verify release data with specific criteria
+def verify(data, dext: list[str]):
 	latest = sorted(data.keys(), key=version.parse)[-1]
 
 	extens = data[latest].keys()
@@ -114,18 +112,19 @@ def verify(data):
 		data[latest].values()
 	)]
 
-	# Checks
-	docfiles = 0
-
-	for i, ext in enumerate(extens):
-		if ext in docext: docfiles += counts[i]
+	# Check data
+	tagcnt = len(data.keys())
+	doccnt = sum([counts[i] for i, ext in enumerate(extens) if ext in dext])
+	chrcnt = sum([sum(map(len, data[latest][ext][1])) for ext in dext])
 	
-	docamt = 0
-
-	for ext in docext:
-		docamt += sum(map(len, data[latest][ext][1]))
-	
-	return latest, extens, counts, docfiles >= file_thresh, docamt >= char_thresh
+	return (
+		latest,
+		extens,
+		counts,
+		doccnt >= 1,
+		chrcnt >= 1000,
+		tagcnt >= 2
+	)
 
 if __name__ == '__main__':
 	get_data()
