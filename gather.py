@@ -3,7 +3,6 @@ import subprocess
 from os import getcwd
 from os.path import isdir
 from extract import Extractor
-from visit import Visitor
 from termcolor import colored as c
 from packaging import version
 from tqdm import tqdm
@@ -85,7 +84,7 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
 			continue
 
-		latest, extens, counts, *passed = verify(data)
+		latest, extens, counts, *passed = verify(data, dext)
 
 		if False not in passed:
 			# Stringified stats
@@ -94,8 +93,7 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 
 			click.echo(f'Latest release ({latest}):')
 			click.echo(c(extens, 'green'))
-			click.echo(counts)
-			click.echo()
+			click.echo(f'{counts}\n')
 
 			with open(outfile, 'wb') as f:
 				pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -105,12 +103,7 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 			click.echo(c(f'Data did not pass criteria {indices}. Discarding...\n', 'red'))
 
 # Verify release data with specific criteria
-def verify(data):
-	char_thresh = 1000
-	file_thresh = 1
-	tags_thresh = 2
-	docext = ['md', 'rst']
-
+def verify(data, dext: list[str]):
 	latest = sorted(data.keys(), key=version.parse)[-1]
 
 	extens = data[latest].keys()
@@ -119,24 +112,18 @@ def verify(data):
 		data[latest].values()
 	)]
 
-	# Checks
-	docfiles = 0
-
-	for i, ext in enumerate(extens):
-		if ext in docext: docfiles += counts[i]
-	
-	docamt = 0
-
-	for ext in docext:
-		docamt += sum(map(len, data[latest][ext][1]))
+	# Check data
+	tagcnt = len(data.keys())
+	doccnt = sum([counts[i] for i, ext in enumerate(extens) if ext in dext])
+	chrcnt = sum([sum(map(len, data[latest][ext][1])) for ext in dext])
 	
 	return (
 		latest,
 		extens,
 		counts,
-		docfiles >= file_thresh,
-		docamt >= char_thresh,
-		len(data.keys()) > tags_thresh
+		doccnt >= 1,
+		chrcnt >= 1000,
+		tagcnt >= 2
 	)
 
 if __name__ == '__main__':
