@@ -2231,7 +2231,6 @@ https://github.com/jimzhan/pyx.git
 https://github.com/nevimov/django-easycart.git
 https://github.com/VeryCB/flask-slack.git
 https://github.com/cknoll/ipydex.git
-https://github.com/bopo/mootdx.git
 https://github.com/sochotnicky/pytrailer.git
 https://github.com/django-fluent/fluentcms-emailtemplates.git
 https://github.com/mikekap/unicodedata2.git

@@ -11,15 +11,23 @@ def parse_response(response):
     remaining = int(response.headers['X-RateLimit-Remaining'])
     releases = response.json()
     data = {}
-    for release in releases:
-        tag = release['tag_name']
-        data[tag] = {
-            'tag': tag,
-            'html_url': release['html_url'],
-            'created_at': release['created_at'],
-            'published_at': release['published_at'],
-            'body': release['body'],
-        }
+    if response.status_code == 200:
+        for release in releases:
+            tag = release['tag_name']
+            data[tag] = {
+                'tag': tag,
+                'html_url': release['html_url'],
+                'created_at': release['created_at'],
+                'published_at': release['published_at'],
+                'body': release['body'],
+            }
+    elif response.status_code == 404:
+        # Some repositories don't have any tagged releaeses,
+        # ex. https://github.com/HonzaKral/django-threadedcomments/releases
+        pass
+    else:
+        print('raising exception...')
+        raise Exception('Unexpected status code:', response.status_code, response.reason)
     return data, remaining
 
 def fetch(repo_url, token):
