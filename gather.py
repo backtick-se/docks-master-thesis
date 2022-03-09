@@ -56,25 +56,22 @@ def get_data(src: str, out: str, ext: tuple[str]):
 		# Name for output file (username-reponame)
 		r = re.search('.*\/(.*)\/(.*).git', repo)
 		name = f'{r.group(1)}-{r.group(2)}'
+		outfile = f'{out}/{name}.pickle'
 		
 		crep = colored(repo, 'green')
-		click.echo(f'Processing {crep}')
+		click.echo(f'Processing {crep} -> {outfile}')
 
 		data = get_release_data(repo, ext)
-		latest = str(max(map(version.parse, data.keys())))
+		latest = sorted(data.keys(), key=version.parse)[-1]
 
-		counts = ''.join([
-			f'{key}:{len(tup[0])} ' 
-			for key, tup in data[latest].items()
-		])
+		extens = '\t'.join(data[latest].keys())
+		counts = '\t'.join([str(len(tup[0])) for tup in data[latest].values()])
 
-		ccnt = colored(counts, 'green')
-		click.echo(f'Latest release ({latest}) contains: {ccnt}')
-
-		outfile = f'{out}/{name}.pickle'
-
-		outf = colored(outfile, 'green')
-		click.echo(f'Saving to: {outf}\n')
+		cextes = colored(extens, 'green')
+		click.echo(f'Latest release ({latest}):')
+		click.echo(cextes)
+		click.echo(counts)
+		click.echo()
 
 		with open(outfile, 'wb') as f:
 			pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
