@@ -22,18 +22,13 @@ def parse_response(response):
                 'body': release['body'],
             }
     elif response.status_code == 404:
-        # Some repositories don't have any tagged releaeses,
+        # Some repositories don't have any tagged releases,
         # ex. https://github.com/HonzaKral/django-threadedcomments/releases
         pass
     else:
         print('raising exception...')
         raise Exception('Unexpected status code:', response.status_code, response.reason)
     return data, remaining
-
-def fetch(repo_url, token):
-        headers = {'Authorization': 'token ' + token}
-        name = re.search('.*\/(.*\/.*).git', repo_url).group(1)
-        return requests.get(f'https://api.github.com/repos/{name}/releases', headers=headers)
 
 def dump(data, outfile):
     with open(outfile, 'wb') as f:
