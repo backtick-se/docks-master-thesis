@@ -17,7 +17,7 @@ https://github.com/pennersr/django-allauth.git
 https://github.com/evonove/django-oauth-toolkit.git
 https://github.com/idan/oauthlib.git
 https://github.com/jpadilla/pyjwt.git
-https://github.com/mpdavis/python-jose/.git
+https://github.com/mpdavis/python-jose.git
 https://github.com/davedoesdev/python-jwt.git
 https://github.com/pybuilder/pybuilder.git
 https://github.com/python-attrs/attrs.git
@@ -30,8 +30,8 @@ https://github.com/stephenmcd/mezzanine.git
 https://github.com/rochacbruno/quokka.git
 https://github.com/django-cache-machine/django-cache-machine.git
 https://github.com/lericson/pylibmc.git
-https://github.com/errbotio/errbot/.git
-https://github.com/coala/coala/.git
+https://github.com/errbotio/errbot.git
+https://github.com/coala/coala.git
 https://github.com/PyCQA/prospector.git
 https://github.com/gak/pycallgraph.git
 https://github.com/klen/pylama.git
@@ -54,7 +54,7 @@ https://github.com/laixintao/iredis.git
 https://github.com/donnemartin/saws.git
 https://github.com/PyCQA/modernize.git
 https://github.com/ageitgey/face_recognition.git
-https://github.com/kornia/kornia/.git
+https://github.com/kornia/kornia.git
 https://github.com/python-greenlet/greenlet.git
 https://github.com/MagicStack/uvloop.git
 https://github.com/DiffSK/configobj.git
@@ -78,7 +78,7 @@ https://github.com/datastax/python-driver.git
 https://github.com/dpkp/kafka-python.git
 https://github.com/andymccurdy/redis-py.git
 https://github.com/dateutil/dateutil.git
-https://github.com/myusuf3/delorean/.git
+https://github.com/myusuf3/delorean.git
 https://github.com/timofurrer/maya.git
 https://github.com/sdispater/pendulum.git
 https://github.com/dirn/When.py.git
@@ -127,11 +127,11 @@ https://github.com/nucleic/enaml.git
 https://github.com/zoofIO/flexx.git
 https://github.com/chriskiehl/Gooey.git
 https://github.com/PySimpleGUI/PySimpleGUI.git
-https://github.com/r0x0r/pywebview/.git
+https://github.com/r0x0r/pywebview.git
 https://github.com/pybee/toga.git
-https://github.com/RaylockLLC/DearPyGui/.git
-https://github.com/graphql-python/graphene/.git
-https://github.com/tartiflette/tartiflette-asgi/.git
+https://github.com/RaylockLLC/DearPyGui.git
+https://github.com/graphql-python/graphene.git
+https://github.com/tartiflette/tartiflette-asgi.git
 https://github.com/frewsxcv/python-geojson.git
 https://github.com/geopy/geopy.git
 https://github.com/mozilla/bleach.git
@@ -171,8 +171,8 @@ https://github.com/tschellenbach/Stream-Framework.git
 https://github.com/pudo/dataset.git
 https://github.com/encode/orm.git
 https://github.com/coleifer/peewee.git
-https://github.com/ponyorm/pony/.git
-https://github.com/web2py/pydal/.git
+https://github.com/ponyorm/pony.git
+https://github.com/web2py/pydal.git
 https://github.com/stephenmcd/hot-redis.git
 https://github.com/MongoEngine/mongoengine.git
 https://github.com/pynamodb/PynamoDB.git
@@ -182,7 +182,7 @@ https://github.com/joke2k/faker.git
 https://github.com/lk-geimfari/mimesis.git
 https://github.com/chardet/chardet.git
 https://github.com/LuminosoInsight/python-ftfy.git
-https://github.com/ztane/python-Levenshtein/.git
+https://github.com/ztane/python-Levenshtein.git
 https://github.com/mozillazg/python-pinyin.git
 https://github.com/pyparsing/pyparsing.git
 https://github.com/derek73/python-nameparser.git
@@ -223,4 +223,3 @@ https://github.com/aaugustin/websockets.git
 https://github.com/benoitc/gunicorn.git
 https://github.com/Pylons/waitress.git
 https://github.com/pallets/werkzeug.git
-.git
