@@ -38,6 +38,32 @@ def get_release_data(url: str, exts: tuple[str]):
 
 	return data
 
+# Verify release data with specific criterion
+def verify(data):
+	amtrsh = 1000 # Characters
+	docext = ['md', 'rst']
+
+	latest = sorted(data.keys(), key=version.parse)[-1]
+
+	extens = data[latest].keys()
+	counts = [*map(
+		lambda t: len(t[0]),
+		data[latest].values()
+	)]
+
+	# Checks
+	docfiles = 0
+
+	for i, ext in enumerate(extens):
+		if ext in docext: docfiles += counts[i]
+	
+	docamt = 0
+
+	for ext in docext:
+		docamt += sum(map(len, data[latest][ext][1]))
+	
+	return latest, docfiles > 0 and docamt > amtrsh, extens, counts
+
 @click.command()
 @click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
 @click.option('--out', '-o', help='Output folder (defaults to data)', default='data')
@@ -60,27 +86,26 @@ def get_data(src: str, out: str, ext: tuple[str]):
 		crep = colored(repo, 'green')
 		click.echo(f'Processing {crep} -> {outfile}')
 
-		# Get the release data and latest release tag
+		# Get the release data
 		data = get_release_data(repo, ext)
-		latest = sorted(data.keys(), key=version.parse)[-1]
+		latest, passed, extens, counts = verify(data)
 
-		# Some stats
-		extens = '\t'.join(data[latest].keys())
-		counts = '\t'.join(
-			map(
-				lambda t: str(len(t[0])),
-				data[latest].values()
-			)
-		)
+		if passed:
+			# Stringified stats
+			extens = '\t'.join(extens)
+			counts = '\t'.join(map(str, counts))
 
-		cextes = colored(extens, 'green')
-		click.echo(f'Latest release ({latest}):')
-		click.echo(cextes)
-		click.echo(counts)
-		click.echo()
+			cextes = colored(extens, 'green')
+			click.echo(f'Latest release ({latest}):')
+			click.echo(cextes)
+			click.echo(counts)
+			click.echo()
 
-		with open(outfile, 'wb') as f:
-			pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+			with open(outfile, 'wb') as f:
+				pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+		
+		else:
+			click.echo(colored('Data did not pass verification. Discarding...', 'red'))
 
 if __name__ == '__main__':
 	get_data()
