@@ -105,7 +105,7 @@ https://github.com/JaidedAI/EasyOCR.git
 https://github.com/ageitgey/face_recognition.git
 https://github.com/kornia/kornia.git
 https://github.com/madmaze/pytesseract.git
-https://github.com/tesseract-ocr.git
+https://github.com/tesseract-ocr/tesseract.git
 https://github.com/sightmachine/SimpleCV.git
 https://github.com/sirfz/tesserocr.git
 https://github.com/python-greenlet/greenlet.git
@@ -404,7 +404,7 @@ https://github.com/TomNicholas/Python-for-Scientists.git
 https://github.com/chapmanb/bcbio-nextgen.git
 https://github.com/chapmanb/bcbb.git
 https://github.com/benedekrozemberczki/karateclub.git
-https://github.com/obspy/obspy/wiki.git
+https://github.com/obspy/obspy.git
 https://github.com/pymc-devs/pymc3.git
 https://github.com/statsmodels/statsmodels.git
 https://github.com/sympy/sympy.git
