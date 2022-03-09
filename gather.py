@@ -13,13 +13,12 @@ quiet_flag = '&> /dev/null'
 
 # Checkout to given tag and extract {extension: (paths, contents)}
 def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
-	data = {}
+	subprocess.run(f'git checkout tags/{tag} {quiet_flag}', shell=True, cwd=cwd)
 
-	for ext in exts:
-		subprocess.run(f'git checkout tags/{tag} {quiet_flag}', shell=True, cwd=cwd)
-		data[ext] = Extractor(ext).extract(cwd)
-	
-	return data
+	return {
+		ext: Extractor(ext).extract(cwd)
+		for ext in exts
+	}
 
 # Clone repo an extract all the release tags
 # Checkout all releases and extract {tag: {extension: (paths, contents)}}
@@ -61,11 +60,18 @@ def get_data(src: str, out: str, ext: tuple[str]):
 		crep = colored(repo, 'green')
 		click.echo(f'Processing {crep} -> {outfile}')
 
+		# Get the release data and latest release tag
 		data = get_release_data(repo, ext)
 		latest = sorted(data.keys(), key=version.parse)[-1]
 
+		# Some stats
 		extens = '\t'.join(data[latest].keys())
-		counts = '\t'.join([str(len(tup[0])) for tup in data[latest].values()])
+		counts = '\t'.join(
+			map(
+				lambda t: str(len(t[0])),
+				data[latest].values()
+			)
+		)
 
 		cextes = colored(extens, 'green')
 		click.echo(f'Latest release ({latest}):')
