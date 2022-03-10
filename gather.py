@@ -1,4 +1,3 @@
-import pickle
 import subprocess
 from os import getcwd
 from os.path import isdir
@@ -75,7 +74,7 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 		release_tags = load(rel)
 	except FileNotFoundError:
 		release_tags = {}
-		click.echo('{0} Release tag file not found. Reverting to "git tag -l"\n'.format(c('WARNING:', 'yellow')))
+		click.echo('{0} Release tag file not found. Using "git tag -l"\n'.format(c('WARNING:', 'yellow')))
 	
 	for repo in repos:
 		# Name for output file (username-reponame)
@@ -85,9 +84,14 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 		
 		click.echo('Processing {0} -> {1}'.format(c(repo, 'green'), outfile))
 
+		# Try to get the tags for this repo
+		tags = [*release_tags[repo].keys()] if repo in release_tags else []
+
+		if not tags:
+			click.echo('{0} Release tags not found. Reverting to "git tag -l"'.format(c('WARNING:', 'yellow')))
+
 		# Get the release data
 		try:
-			tags = [*release_tags[repo].keys()] if repo in release_tags else []
 			data = get_release_data(repo, cext, dext, tags)
 		except ValueError as e:
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
