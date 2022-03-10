@@ -72,7 +72,9 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 
 	try:
 		release_tags = load(rel)
+		auto = False
 	except FileNotFoundError:
+		auto = True
 		release_tags = {}
 		click.echo('{0} Release tag file not found. Using "git tag -l"\n'.format(c('WARNING:', 'yellow')))
 	
@@ -87,18 +89,22 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 		# Get the release data
 		try:
 			tags = [*release_tags[repo]] if repo in release_tags else []
-			if not tags: raise ValueError('No releases found in tag file')
+
+			if not tags and not auto:
+				raise ValueError('No releases found in tag file')
+
 			data = get_release_data(repo, cext, dext, tags)
 		except ValueError as e:
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
 			continue
 
 		latest, extens, counts, *passed = verify(data, dext)
+		data = process(data, latest, dext)
 
 		if False not in passed:
 			# Stringified stats
-			extens = '\t'.join([*extens, 'Tags'])
-			counts = '\t'.join([*map(str, counts), 'file' if tags else c('auto', 'yellow')])
+			extens = '\t'.join([*extens])
+			counts = '\t'.join([*map(str, counts)])
 
 			click.echo(f'Latest release ({latest}):')
 			click.echo(c(extens, 'green'))
@@ -110,11 +116,18 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 			indices = [i for i, c in enumerate(passed) if c == False]
 			click.echo(c(f'Data did not pass criteria {indices}. Discarding...\n', 'red'))
 
+# Process the data
+def process(data, latest: str, dext: list[str]):
+	return {
+		**data,
+		'latest': data[latest]
+	}
+
 # Verify release data with specific criteria
 def verify(data, dext: list[str]):
 	latest = sorted(data.keys(), key=version.parse)[-1]
 
-	extens = data[latest].keys()
+	extens = [*data[latest]]
 	counts = [*map(
 		lambda t: len(t[0]),
 		data[latest].values()
