@@ -84,14 +84,10 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 		
 		click.echo('Processing {0} -> {1}'.format(c(repo, 'green'), outfile))
 
-		# Try to get the tags for this repo
-		tags = [*release_tags[repo].keys()] if repo in release_tags else []
-
-		if not tags:
-			click.echo('{0} Release tags not found. Reverting to "git tag -l"'.format(c('WARNING:', 'yellow')))
-
 		# Get the release data
 		try:
+			tags = [*release_tags[repo]] if repo in release_tags else []
+			if not tags: raise ValueError('No releases found in tag file')
 			data = get_release_data(repo, cext, dext, tags)
 		except ValueError as e:
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
@@ -101,8 +97,8 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 
 		if False not in passed:
 			# Stringified stats
-			extens = '\t'.join(extens)
-			counts = '\t'.join(map(str, counts))
+			extens = '\t'.join([*extens, 'Tags'])
+			counts = '\t'.join([*map(str, counts), 'file' if tags else c('auto', 'yellow')])
 
 			click.echo(f'Latest release ({latest}):')
 			click.echo(c(extens, 'green'))
