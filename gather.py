@@ -26,19 +26,24 @@ def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
 
 # Clone repo an extract all the release tags
 # Checkout all releases and extract {tag: {extension: (paths, contents)}}
-def get_release_data(url: str, cext: tuple[str], dext: tuple[str]):
+def get_release_data(url: str, cext: list[str], dext: list[str], tags: list[str] = []):
 	name = re.search('.*\/(.*).git', url).group(1)
-	cwd = f'{getcwd()}/{name}'
-	dwd = f'{cwd}/docs'
+	cwd = f'{getcwd()}/{name}' 	# Repo directory
+	dwd = f'{cwd}/docs' 		# Docs directory
 
 	try:
+		# Clone the repo
 		subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
-
 		clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
+		
+		# Extract tags if not provided
+		if not tags:
+			subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
 
-		release_tags = load('data/release_tags.pickle')
-		tags = list(release_tags[url].keys()) if url in release_tags else []
+			with open(f'{cwd}/tags.txt') as f:
+				tags = f.read().split('\n')[:-1]
 
+		# Assert that tags and doc directory exist
 		if not tags or not isdir(dwd):
 			raise ValueError(f'Repo must contain docs folder and release tags')
 		
@@ -60,14 +65,20 @@ def get_release_data(url: str, cext: tuple[str], dext: tuple[str]):
 @click.command()
 @click.option('--src', '-s', help='Source file with extension (e.g repos.txt)')
 @click.option('--out', '-o', help='Output folder (defaults to data)', default='data')
+@click.option('--rel', '-r', help='Release tag file (default data/release_tags.pickle)', default='data/release_tags.pickle')
 @click.option('--cext', '-ce', help='Code extensions to look for', multiple=True, default=['py'])
 @click.option('--dext', '-de', help='Doc extensions to look for', multiple=True, default=['md', 'rst'])
-def get_data(src: str, out: str, cext: list[str], dext: list[str]):
+def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 
 	with open(src) as f:
 		repos = f.read().split('\n')
 
 	click.echo('Gathering {0} data from {1} repos...\n'.format(c(cext + dext, 'green'), c(len(repos), 'green')))
+
+	try:
+		release_tags = load(rel)
+	except FileNotFoundError:
+		click.echo('Release tag file not found. Reverting to "git tag -l"')
 	
 	for repo in repos:
 		# Name for output file (username-reponame)
@@ -79,7 +90,8 @@ def get_data(src: str, out: str, cext: list[str], dext: list[str]):
 
 		# Get the release data
 		try:
-			data = get_release_data(repo, cext, dext)
+			tags = [*release_tags[repo].keys()] if repo in release_tags else []
+			data = get_release_data(repo, cext, dext, tags)
 		except ValueError as e:
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
 			continue
