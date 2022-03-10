@@ -1,4 +1,4 @@
-from load import load
+from inout import load
 
 repos = set()
 files = [

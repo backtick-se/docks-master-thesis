@@ -4,11 +4,11 @@ from os import getcwd
 from os.path import isdir
 from extract import Extractor
 from termcolor import colored as c
+from inout import load, dump
 from packaging import version
 from tqdm import tqdm
 import click
 import re
-from load import load
 
 quiet_flag = '&> /dev/null'
 
@@ -38,9 +38,7 @@ def get_release_data(url: str, cext: list[str], dext: list[str], tags: list[str]
 		# Extract tags if not provided
 		if not tags:
 			subprocess.run(f'git tag -l > tags.txt', shell=True, cwd=cwd)
-
-			with open(f'{cwd}/tags.txt') as f:
-				tags = f.read().split('\n')[:-1]
+			tags = load(f'{cwd}/tags.txt').split('\n')[:-1]
 
 		# Assert that tags and doc directory exist
 		if not tags or not isdir(dwd):
@@ -69,8 +67,7 @@ def get_release_data(url: str, cext: list[str], dext: list[str], tags: list[str]
 @click.option('--dext', '-de', help='Doc extensions to look for', multiple=True, default=['md', 'rst'])
 def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 
-	with open(src) as f:
-		repos = f.read().split('\n')
+	repos = load(src).split('\n')
 
 	click.echo('Gathering {0} data from {1} repos...\n'.format(c(cext + dext, 'green'), c(len(repos), 'green')))
 
@@ -107,8 +104,7 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 			click.echo(c(extens, 'green'))
 			click.echo(f'{counts}\n')
 
-			with open(outfile, 'wb') as f:
-				pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
+			dump(data, outfile)
 		
 		else:
 			indices = [i for i, c in enumerate(passed) if c == False]
