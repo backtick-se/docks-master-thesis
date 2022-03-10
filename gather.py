@@ -13,7 +13,7 @@ from load import load
 quiet_flag = '&> /dev/null'
 
 # Checkout to given tag and extract {extension: (paths, contents)}
-def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
+def checkout_extract(tag: str, cwd: str, exts: list[str]):
 	try:
 		subprocess.run(f'git checkout tags/{tag} {quiet_flag}', shell=True, cwd=cwd)
 	except FileNotFoundError:
@@ -24,7 +24,6 @@ def checkout_extract(tag: str, cwd: str, exts: tuple[str]):
 		for ext in exts
 	}
 
-# Clone repo an extract all the release tags
 # Checkout all releases and extract {tag: {extension: (paths, contents)}}
 def get_release_data(url: str, cext: list[str], dext: list[str], tags: list[str] = []):
 	name = re.search('.*\/(.*).git', url).group(1)
@@ -78,7 +77,8 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 	try:
 		release_tags = load(rel)
 	except FileNotFoundError:
-		click.echo('Release tag file not found. Reverting to "git tag -l"')
+		release_tags = {}
+		click.echo('{0} Release tag file not found. Reverting to "git tag -l"\n'.format(c('WARNING:', 'yellow')))
 	
 	for repo in repos:
 		# Name for output file (username-reponame)
