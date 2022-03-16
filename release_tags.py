@@ -5,7 +5,7 @@ import time
 from tqdm import tqdm
 import pickle
 from os.path import exists
-from inout import load
+from utils import load
 
 def parse_response(response):
     remaining = int(response.headers['X-RateLimit-Remaining'])

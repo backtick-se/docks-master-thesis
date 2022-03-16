@@ -3,7 +3,7 @@ from os import getcwd
 from os.path import isdir
 from extract import Extractor
 from termcolor import colored as c
-from inout import load, dump
+from utils import get_latest, load, dump
 from packaging import version
 from tqdm import tqdm
 import click
@@ -76,6 +76,8 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 	except FileNotFoundError:
 		auto = True
 		release_tags = {}
+	
+	if auto:
 		click.echo('{0} Release tag file not found. Using "git tag -l"\n'.format(c('WARNING:', 'yellow')))
 	
 	for repo in repos:
@@ -98,15 +100,15 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 			click.echo(c(f'{e}. Skipping...\n', 'red'))
 			continue
 
-		latest, extens, counts, *passed = verify(data, dext)
-		data = process(data, latest, dext)
+		extens, counts, *passed = verify(data, dext)
+		data = process(data, dext)
 
 		if False not in passed:
 			# Stringified stats
 			extens = '\t'.join([*extens])
 			counts = '\t'.join([*map(str, counts)])
 
-			click.echo(f'Latest release ({latest}):')
+			click.echo(f'Latest release ({get_latest(data.keys())}):')
 			click.echo(c(extens, 'green'))
 			click.echo(f'{counts}\n')
 
@@ -117,7 +119,9 @@ def get_data(src: str, out: str, rel: str, cext: list[str], dext: list[str]):
 			click.echo(c(f'Data did not pass criteria {indices}. Discarding...\n', 'red'))
 
 # Process the data
-def process(data, latest: str, dext: list[str]):
+def process(data, dext: list[str]):
+	latest = get_latest(data.keys())
+
 	return {
 		**data,
 		'latest': data[latest]
@@ -125,7 +129,7 @@ def process(data, latest: str, dext: list[str]):
 
 # Verify release data with specific criteria
 def verify(data, dext: list[str]):
-	latest = sorted(data.keys(), key=version.parse)[-1]
+	latest = get_latest(data.keys())
 
 	extens = [*data[latest]]
 	counts = [*map(
@@ -139,7 +143,6 @@ def verify(data, dext: list[str]):
 	chrcnt = sum([sum(map(len, data[latest][ext][1])) for ext in dext])
 	
 	return (
-		latest,
 		extens,
 		counts,
 		doccnt >= 1,
