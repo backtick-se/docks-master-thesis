@@ -31,7 +31,16 @@ def parse_pull_requests(responses):
 def run(token: str, url: str, out: str):
     """
     Ex. usage:
-    python3 github_fetch.py -t $token \-u "https://api.github.com/repos/pandas-dev/pandas/issues?per_page=100&status=open" -o issues.pickles
+    python3 github_fetch.py -t $token \-u "https://api.github.com/repos/pandas-dev/pandas/issues?per_page=100&state=open" -o issues.pickles
+
+    python3
+    import pickle
+    from github_fetch import parse_pull_requests
+    f = open('data/issues/issues.pickles', 'rb')
+    data = pickle.load(f)
+    set([r.status_code for r in data]) # Should be {200}
+    pr = parse_pull_requests(data)
+    len(pr)
     """
     responses = fetch_responses(token, url)
     print(len(responses), "responses", responses[:3])
