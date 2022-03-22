@@ -1,3 +1,5 @@
+from utils import cloned
+from extract import Extractor
 from gensim.models import TfidfModel, LdaMulticore
 from gensim.utils import simple_preprocess
 from gensim.parsing.preprocessing import STOPWORDS
@@ -27,7 +29,7 @@ def preprocess(text, min_len=3):
 def train_lda_model(docs, num_topics, tfidf=False, passes=2, workers=2):
 	processed_docs = [*map(preprocess, docs)]
 	dictionary = Dictionary(processed_docs)
-	dictionary.filter_extremes(no_below=3, no_above=0.5, keep_n=100000)
+	dictionary.filter_extremes(no_below=3, no_above=0.9, keep_n=100000)
 	bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
 
 	corpus = TfidfModel(bow_corpus)[bow_corpus] if tfidf else bow_corpus
@@ -60,29 +62,12 @@ def test_predict(model, dictionary, doc):
 	for index, score in topics:
 		print(f'Score: {score}\nTopic: {model.print_topic(index, 5)}')
 
-if __name__ == '__main__':
-	from extract import Extractor
-	from os import getcwd
-	import subprocess
-	import re
-
-	url = 'git@github.com:backtick-se/cowait.git'
-	quiet_flag = '&> /dev/null'
-
-	name = re.search('.*\/(.*).git', url).group(1)
-	cwd = f'{getcwd()}/{name}' 	# Repo directory
-	dwd = f'{cwd}/docs' 		# Docs directory
-
-	subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
-	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
+# Example usage of cloned
+@cloned('git@github.com:backtick-se/cowait.git')
+def test(cwd):
+	dwd = f'{cwd}/docs' # Docs directory
 
 	paths, contents = Extractor('md').extract(dwd)
-
-	model, dictionary, corpus = train_lda_model(contents, 10)
+	model, dictionary, corpus = train_lda_model(contents, 5)
 	
-	#test_predict(model, dictionary)
-
-	#i=2
-	#print(f'{contents[i]}\n{preprocess(contents[i])}')
-
-	clean()
+	test_predict(model, dictionary, 'Task State / UI wip')
