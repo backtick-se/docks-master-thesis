@@ -3,6 +3,8 @@ asttokens==2.0.5
 backcall==0.2.0
 beautifulsoup4==4.10.0
 black==22.1.0
+certifi==2021.10.8
+charset-normalizer==2.0.12
 click==8.0.4
 debugpy==1.5.1
 decorator==5.1.1
@@ -10,6 +12,7 @@ entrypoints==0.4
 et-xmlfile==1.1.0
 executing==0.8.2
 gensim==4.1.2
+idna==3.3
 importlib-metadata==4.11.2
 ipykernel==6.9.1
 ipython==8.0.1
@@ -40,6 +43,7 @@ python-dateutil==2.8.2
 pytz==2021.3
 pyzmq==22.3.0
 regex==2022.3.15
+requests==2.27.1
 scipy==1.8.0
 six==1.16.0
 smart-open==5.2.1
@@ -51,6 +55,7 @@ tornado==6.1
 tqdm==4.63.0
 traitlets==5.1.1
 typing_extensions==4.1.1
+urllib3==1.26.9
 wcwidth==0.2.5
 xlrd==2.0.1
 zipp==3.7.0

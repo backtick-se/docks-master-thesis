@@ -7,6 +7,8 @@ from os import getcwd
 import subprocess
 import re
 
+quiet_flag = '&> /dev/null'
+
 # Load file
 def load(file):
 	if not isfile(file):
@@ -41,8 +43,6 @@ def get_latest(tags: list[str]):
 
 # Decorate function taking cwd with @cloned(url) to clone and clean
 def cloned(url):
-	quiet_flag = '&> /dev/null'
-
 	name = re.search('.*\/(.*).git', url).group(1)
 	cwd = f'{getcwd()}/{name}' 	# Repo directory
 
@@ -50,8 +50,8 @@ def cloned(url):
 	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
 
 	def decorator(fnc):
-		def wrapper():
-			ret = fnc(cwd)
+		def wrapper(*args):
+			ret = fnc(cwd, *args)
 			clean()
 			return ret
 
