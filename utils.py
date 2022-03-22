@@ -3,6 +3,9 @@ from markdown import markdown
 from bs4 import BeautifulSoup as bf
 from packaging import version
 from os.path import isfile
+from os import getcwd
+import subprocess
+import re
 
 # Load file
 def load(file):
@@ -35,3 +38,26 @@ def md_to_text(md: str):
 # Get latest release from list of tags
 def get_latest(tags: list[str]):
 	return sorted(tags, key=version.parse)[-1]
+
+# Decorate function taking cwd with @cloned(url) to clone and clean
+def cloned(url):
+	quiet_flag = '&> /dev/null'
+
+	name = re.search('.*\/(.*).git', url).group(1)
+	cwd = f'{getcwd()}/{name}' 	# Repo directory
+
+	subprocess.run(f'git clone {url} {cwd} {quiet_flag}', shell=True)
+	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
+
+	def decorator(fnc):
+		def wrapper():
+			ret = fnc(cwd)
+			clean()
+			return ret
+
+		return wrapper
+	
+	return decorator
+	
+
+	
