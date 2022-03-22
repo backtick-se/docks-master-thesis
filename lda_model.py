@@ -25,7 +25,7 @@ def preprocess(text, min_len=3):
 	]
 
 def train_lda_model(docs, num_topics, tfidf=False, passes=2, workers=2):
-	processed_docs = map(preprocess, docs)
+	processed_docs = [*map(preprocess, docs)]
 	dictionary = Dictionary(processed_docs)
 	dictionary.filter_extremes(no_below=3, no_above=0.5, keep_n=100000)
 	bow_corpus = [dictionary.doc2bow(doc) for doc in processed_docs]
