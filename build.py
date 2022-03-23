@@ -2,11 +2,12 @@ import click
 import subprocess
 from tqdm import tqdm
 from extract import Extractor
-from github_fetch import fetch_responses, parse_pull_requests
-from utils import dump, quiet_flag, cloned
+from github_fetch import fetch_responses, parse_pull_requests, fetch_data
+from utils import dump, quiet_flag, cloned, keyper, single
+from os import getcwd
 
 # Values to extract from PR json response
-keys = (
+pr_keys = (
 	'number',
 	'title',
 	'labels',
@@ -15,10 +16,23 @@ keys = (
 	'body'
 )
 
+# Values to extract from commit json response
+cm_keys = (
+	'sha',
+	'html_url',
+	'commit',
+	'files',
+	'stats'
+)
+
 # Get url for repo cloning from user/repo
 cl_url = lambda user, repo: f'https://github.com/{user}/{repo}.git'
 # Get url for PR fetching from user/repo
 pr_url = lambda user, repo: f'https://api.github.com/repos/{user}/{repo}/issues?per_page=100&state=closed'
+# Get url for commits belonging to a PR
+cs_url = lambda user, repo, pnr: f'https://api.github.com/repos/{user}/{repo}/pulls/{pnr}/commits'
+# Get url for commit content of certain commit
+cm_url = lambda user, repo, sha: f'https://api.github.com/repos/{user}/{repo}/commits/{sha}'
 
 # Checkout every PR and extend with doc data
 def extract_docs(cwd, data):
@@ -30,16 +44,20 @@ def extract_docs(cwd, data):
 		if 'merged_at' in pr['pull_request']:
 			subprocess.run(f'git pr {pr_num} {quiet_flag}', cwd=cwd, shell=True)
 			paths, contents = Extractor('md').extract(dwd)
-			return {'paths': paths, 'contents': contents}
+
+			# Make paths relative to repo root
+			paths = [*map(lambda p: p.replace(f'{getcwd()}/', ''), paths)]
+
+			return [*zip(paths, contents)]
 		else:
 			raise ValueError('PR not merged')
 
 	ret = []
 
 	# Remove from dataset if ValueError (doc folder does not exist or pr not merged)
-	for pr in tqdm(data):
+	for pr in data:
 		try:
-			ret.append({**checkout_extract(pr), **pr})
+			ret.append({'docs': checkout_extract(pr), **pr})
 		except ValueError:
 			pass
 	
@@ -59,16 +77,43 @@ def run(auth: str, target: str, format: str):
 	u, r = target.split('/')
 
 	# Get the PR data
+	click.echo('Fetching PR data...')
 	responses = fetch_responses(auth, pr_url(u, r))
 	prs = parse_pull_requests(responses)
 
-	# Only keep the desired keys
-	pr_data = [*map(lambda pr: {k: pr[k] for k in keys}, prs)]
+	# Filter keys
+	pr_data = [*map(keyper(pr_keys), prs)]
 
 	# Clone, checkout and save doc state for every PR
-	data = cloned(cl_url(u, r))(extract_docs)(pr_data)
+	click.echo('Extracting doc states...')
+	data = cloned(cl_url(u, r))(extract_docs)(tqdm(pr_data))
 
-	dump(data, f'data/prd_{u}_{r}.{format}')
+	def get_commits(pnr):
+		# Get extended commit info for a sha
+		get_commit = lambda sha: single(fetch_data)(
+			auth, cm_url(u, r, sha),
+		)
+
+		# Get from /pr url, extract sha and fetch full
+		pr_cms	= fetch_data(auth, cs_url(u, r, pnr))
+		shas 	= [*map(lambda c: c['sha'], pr_cms)]
+		commits = [*map(get_commit, shas)]
+		
+		return [*map(keyper(cm_keys), commits)]
+	
+	# Fetch, filter and add commit data to PRs
+	click.echo('Fetching commit data...')
+	add_commits = lambda pr: {
+		**pr,
+		'commits': get_commits(pr['number'])
+	}
+
+	data = [*map(add_commits, tqdm(data))]
+
+	out = f'data/prd_{u}_{r}.{format}'
+	click.echo(f'Done! Saving to {out}')
+
+	dump(data, out)
 
 if __name__ == '__main__':
 	run()

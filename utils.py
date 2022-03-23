@@ -10,6 +10,9 @@ import re
 
 quiet_flag = '&> /dev/null'
 
+# Keep subset of keys from dict: keyper(tuple_with_keys)(dict)
+keyper = lambda keys: lambda dict: {k: dict[k] for k in keys}
+
 # Load file
 def load(file):
 	if not isfile(file):
@@ -48,6 +51,13 @@ def md_to_text(md: str):
 def get_latest(tags: list[str]):
 	return sorted(tags, key=version.parse)[-1]
 
+# Return only first item from list-returning function
+def single(fnc):
+	def wrapper(*args, **kwargs):
+		return fnc(*args, **kwargs)[0]
+
+	return wrapper
+
 # Decorate function taking cwd with @cloned(url) to clone and clean
 def cloned(url):
 	name = re.search('.*\/(.*).git', url).group(1)
@@ -57,14 +67,12 @@ def cloned(url):
 	clean = lambda: subprocess.run(f'rm -rf {cwd}', shell=True)
 
 	def decorator(fnc):
-		def wrapper(*args):
-			ret = fnc(cwd, *args)
+		def wrapper(*args, **kwargs):
+			ret = fnc(cwd, *args, **kwargs)
 			clean()
 			return ret
 
 		return wrapper
 	
 	return decorator
-	
-
 	

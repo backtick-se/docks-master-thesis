@@ -2,6 +2,7 @@ import { useState } from 'react'
 import data from './prd_backtick-se_cowait.json'
 import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
+import rehypeRaw from 'rehype-raw'
 
 const Wrapper = styled('div')`
     display: flex;
@@ -49,6 +50,14 @@ const LabelHead = styled('div')`
     justify-content: space-between;
 `
 
+const Commit = styled('span')`
+    display: flex;
+    flex-direction: column;
+    border: solid 1px rgba(0, 0, 0, 0.2);
+    padding: 1rem;
+    margin-bottom: 0.4rem;
+`
+
 const App = () => {
     const [current, setCurrent] = useState(0)
     const [accepted, setAccepted] = useState([])
@@ -60,12 +69,22 @@ const App = () => {
         setCurrent(current + 1)
     }
 
+    const onSave = () => {
+        const fileData = JSON.stringify(accepted)
+        const blob = new Blob([fileData], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.download = 'filename.json'
+        link.href = url
+        link.click()
+    }
+
     const onAccept = () => {
-        setAccepted([{ ...data[current], selected }, ...accepted])
+        console.log(data[current])
+        setAccepted([{ ...data[current], target: selected }, ...accepted])
         setDocpage(0)
         setSelected([])
         next()
-        console.log(accepted)
     }
 
     const onReject = () => {
@@ -76,7 +95,7 @@ const App = () => {
     }
 
     const onNextDoc = () => {
-        if (docpage + 1 < data[current].contents.length) {
+        if (docpage + 1 < data[current].docs.length) {
             setDocpage(docpage + 1)
         }
     }
@@ -88,10 +107,12 @@ const App = () => {
     }
 
     const onRadioChange = (e) => {
-        if (selected.includes(docpage)) {
-            setSelected(selected.filter((s) => s !== docpage))
+        if (selected.includes(data[current].docs[docpage][0])) {
+            setSelected(
+                selected.filter((s) => s !== data[current].docs[docpage][0])
+            )
         } else {
-            setSelected([...selected, docpage])
+            setSelected([...selected, data[current].docs[docpage][0]])
         }
     }
 
@@ -105,6 +126,8 @@ const App = () => {
                     <span>
                         <b>Rejected:</b> {rejected.length}
                     </span>
+                    <div style={{ flexGrow: 1 }} />
+                    <button onClick={onSave}>Save</button>
                 </Stats>
                 {data[current] && (
                     <>
@@ -116,11 +139,29 @@ const App = () => {
                                 </span>
                             </LabelHead>
                             <h1>{data[current].title}</h1>
-                            <div
-                                dangerouslySetInnerHTML={{
-                                    __html: data[current].body,
-                                }}
-                            ></div>
+                            <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                                {data[current].body}
+                            </ReactMarkdown>
+                            <h2>Commits:</h2>
+                            {data[current].commits.map((commit, i) => (
+                                <>
+                                    <Commit>
+                                        <LabelHead>
+                                            <b>{commit.commit.message}</b>
+                                            <b
+                                                style={{ whiteSpace: 'nowrap' }}
+                                            >{`+${commit.stats['additions']} -${commit.stats['deletions']}`}</b>
+                                        </LabelHead>
+                                        <br />
+                                        {commit.files.map(({ filename }) => (
+                                            <>
+                                                <i>{filename}</i>
+                                                <br />
+                                            </>
+                                        ))}
+                                    </Commit>
+                                </>
+                            ))}
                         </Features>
                         <Labels>
                             <LabelHead>
@@ -128,7 +169,9 @@ const App = () => {
                                     <input
                                         type="radio"
                                         name="docpage"
-                                        checked={selected.includes(docpage)}
+                                        checked={selected.includes(
+                                            data[current].docs[docpage][0]
+                                        )}
                                         onClick={onRadioChange}
                                         value={docpage}
                                     />
@@ -139,25 +182,33 @@ const App = () => {
                                     <button onClick={onNextDoc}>Next</button>
                                 </span>
                                 <span>
-                                    {docpage} /{' '}
-                                    {data[current].contents.length - 1}
+                                    {docpage} / {data[current].docs.length - 1}
                                 </span>
                             </LabelHead>
                             <br />
+                            {selected.map((s) => (
+                                <span>
+                                    <b>Selected:</b> {s}
+                                </span>
+                            ))}
+                            <br />
                             <LabelHead>
-                                <span>Selected: {selected}</span>
+                                <span>
+                                    <b>Current:</b>{' '}
+                                    {data[current].docs[docpage][0]}
+                                </span>
                             </LabelHead>
                             <ReactMarkdown>
-                                {data[current].contents[docpage]}
+                                {data[current].docs[docpage][1]}
                             </ReactMarkdown>
                         </Labels>
                     </>
                 )}
             </Content>
             <Foot>
-                <button onClick={onReject}>Reject</button>
+                <button onClick={onReject}>Reject Datapoint</button>
                 &nbsp;
-                <button onClick={onAccept}>Accept</button>
+                <button onClick={onAccept}>Accept Selection</button>
             </Foot>
         </Wrapper>
     )
