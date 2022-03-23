@@ -64,21 +64,22 @@ def extract_docs(cwd, data):
 	return ret
 
 @click.command()
-@click.option('--auth', '-a', help='GitHub API user authentication token')
-@click.option('--target', '-t', help='Target user and repo: e.g backtick-se/cowait')
-@click.option('--format', '-f', help='Outfile format', default='pickle')
-def run(auth: str, target: str, format: str):
+@click.option('--token', '-t', help='GitHub API user authentication token')
+@click.option('--repo', '-r', help='Target user and repo: e.g backtick-se/cowait')
+@click.option('--out', '-o', help='Outfile path', default=None)
+@click.option('--annotate', '-a', is_flag=True, default=False)
+def run(token: str, repo: str, out: str, annotate: bool):
 	"""
     Ex. usage:
     python build.py -t $token -r backtick-se/cowait -o dataset.pickle
     """
 
 	# User, repo
-	u, r = target.split('/')
+	u, r = repo.split('/')
 
 	# Get the PR data
 	click.echo('Fetching PR data...')
-	responses = fetch_responses(auth, pr_url(u, r))
+	responses = fetch_responses(token, pr_url(u, r))
 	prs = parse_pull_requests(responses)
 
 	# Filter keys
@@ -91,11 +92,11 @@ def run(auth: str, target: str, format: str):
 	def get_commits(pnr):
 		# Get extended commit info for a sha
 		get_commit = lambda sha: single(fetch_data)(
-			auth, cm_url(u, r, sha),
+			token, cm_url(u, r, sha),
 		)
 
 		# Get from /pr url, extract sha and fetch full
-		pr_cms	= fetch_data(auth, cs_url(u, r, pnr))
+		pr_cms	= fetch_data(token, cs_url(u, r, pnr))
 		shas 	= [*map(lambda c: c['sha'], pr_cms)]
 		commits = [*map(get_commit, shas)]
 		
@@ -110,8 +111,12 @@ def run(auth: str, target: str, format: str):
 
 	data = [*map(add_commits, tqdm(data))]
 
-	out = f'data/prd_{u}_{r}.{format}'
+	out = out if out else f'data/prd_{u}_{r}.pickle'
 	click.echo(f'Done! Saving to {out}')
+
+	if annotate:
+		click.echo(f'Saving copy for annotation...')
+		dump(data, 'annotator/src/data.json')
 
 	dump(data, out)
 

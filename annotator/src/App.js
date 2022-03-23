@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import data from './prd_backtick-se_cowait.json'
+import data from './data.json'
 import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
