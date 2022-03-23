@@ -48,7 +48,8 @@ def extract_docs(cwd, data):
 @click.command()
 @click.option('--auth', '-a', help='GitHub API user authentication token')
 @click.option('--target', '-t', help='Target user and repo: e.g backtick-se/cowait')
-def run(auth: str, target: str):
+@click.option('--format', '-f', help='Outfile format', default='pickle')
+def run(auth: str, target: str, format: str):
 	"""
     Ex. usage:
     python build.py -t $token -r backtick-se/cowait -o dataset.pickle
@@ -67,7 +68,7 @@ def run(auth: str, target: str):
 	# Clone, checkout and save doc state for every PR
 	data = cloned(cl_url(u, r))(extract_docs)(pr_data)
 
-	dump(data, f'data/prd_{u}_{r}.pickle')
+	dump(data, f'data/prd_{u}_{r}.{format}')
 
 if __name__ == '__main__':
 	run()

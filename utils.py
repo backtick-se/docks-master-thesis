@@ -5,6 +5,7 @@ from packaging import version
 from os.path import isfile
 from os import getcwd
 import subprocess
+import json
 import re
 
 quiet_flag = '&> /dev/null'
@@ -19,7 +20,10 @@ def load(file):
 			data = pickle.load(f)
 	else:
 		with open(file) as f:
-			data = f.read()
+			if '.json' in file:
+				data = json.load(f)
+			else:
+				data = f.read()
 
 	return data
 
@@ -30,7 +34,10 @@ def dump(data, file):
 			pickle.dump(data, f, protocol=pickle.HIGHEST_PROTOCOL)
 	else:
 		with open(file, 'w') as f:
-			f.write(data)
+			if '.json' in file:
+				json.dump(data, f)
+			else:
+				f.write(data)
 
 # Rendered markdown text
 def md_to_text(md: str):
