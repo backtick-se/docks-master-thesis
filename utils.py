@@ -68,8 +68,10 @@ def cloned(url):
 
 	def decorator(fnc):
 		def wrapper(*args, **kwargs):
-			ret = fnc(cwd, *args, **kwargs)
-			clean()
+			try:
+				ret = fnc(cwd, *args, **kwargs)
+			finally:
+				clean()
 			return ret
 
 		return wrapper
