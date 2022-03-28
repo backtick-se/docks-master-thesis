@@ -65,8 +65,6 @@ def test_predict(model, dictionary, doc):
 	for index, score in topics:
 		print(f'Score: {score}\nTopic: {model.print_topic(index, 5)}')
 
-# Example usage of cloned
-@cloned('git@github.com:backtick-se/cowait.git')
 def test(cwd):
 	dwd = f'{cwd}/docs' # Docs directory
 
@@ -101,7 +99,7 @@ def test(cwd):
 	
 	predicted = [predict(model, dictionary, page)[0] for page in set_data]
 
-	for pred, path in zip(predicted, set_paths):
+	for pred, path in zip(predicted, set_paths):	
 		print(path, pred)
 
 	pr = """
@@ -133,4 +131,4 @@ def test(cwd):
 	#print(pr_prediction, [*predicted.keys()][[*predicted.values()].index(pr_prediction[0][0])])
 
 if __name__ == '__main__':
-	test()
+	cloned('git@github.com:backtick-se/cowait.git')(test)()

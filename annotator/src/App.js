@@ -58,12 +58,17 @@ const Commit = styled('span')`
     margin-bottom: 0.4rem;
 `
 
+const DOC_BREAK = 'DOC_BREAK'
+const NON_DOC_BREAK = 'NON_DOC_BREAK'
+const DOC_CHANGE = 'DOC_CHANGE'
+
 const App = () => {
     const [current, setCurrent] = useState(0)
     const [accepted, setAccepted] = useState([])
     const [rejected, setRejected] = useState([])
     const [docpage, setDocpage] = useState(0)
     const [selected, setSelected] = useState([])
+    const [category, setCategory] = useState(NON_DOC_BREAK)
 
     const next = () => {
         setCurrent(current + 1)
@@ -74,16 +79,20 @@ const App = () => {
         const blob = new Blob([fileData], { type: 'text/plain' })
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
-        link.download = 'filename.json'
+        link.download = 'data.json'
         link.href = url
         link.click()
     }
 
     const onAccept = () => {
         console.log(data[current])
-        setAccepted([{ ...data[current], target: selected }, ...accepted])
+        setAccepted([
+            { ...data[current], target: selected, category: category },
+            ...accepted,
+        ])
         setDocpage(0)
         setSelected([])
+        setCategory(NON_DOC_BREAK)
         next()
     }
 
@@ -116,6 +125,10 @@ const App = () => {
         }
     }
 
+    const onCategoryChange = (e) => {
+        setCategory(e.target.value)
+    }
+
     return (
         <Wrapper>
             <Content>
@@ -137,6 +150,39 @@ const App = () => {
                                 <span>
                                     {current + 1} / {data.length}
                                 </span>
+                            </LabelHead>
+                            <br />
+                            <LabelHead>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="DOC_BREAK"
+                                        checked={category === DOC_BREAK}
+                                        onClick={onCategoryChange}
+                                        value={DOC_BREAK}
+                                    />
+                                    Doc break
+                                </label>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="NON_DOC_BREAK"
+                                        checked={category === NON_DOC_BREAK}
+                                        onClick={onCategoryChange}
+                                        value={NON_DOC_BREAK}
+                                    />
+                                    No doc break
+                                </label>
+                                <label>
+                                    <input
+                                        type="radio"
+                                        name="DOC_CHANGE"
+                                        checked={category === DOC_CHANGE}
+                                        onClick={onCategoryChange}
+                                        value={DOC_CHANGE}
+                                    />
+                                    Doc change
+                                </label>
                             </LabelHead>
                             <h1>{data[current].title}</h1>
                             <ReactMarkdown rehypePlugins={[rehypeRaw]}>
