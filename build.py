@@ -8,7 +8,12 @@ from os import getcwd
 
 """
 Dataset building script. PRs from provided repo will be fetched in the following format:
-Out: [{pr_keys, commits:[cm_keys], docs (optional):[(filepath, content)]}]
+Out: [{**pr_keys, commits:[{**cm_keys}], docs (optional):[(filepath, content)]}]
+
+Detailed info on cm and pr keys: https://docs.github.com/en/rest/reference/issues
+
+Ex. usage:
+python build.py -t $token -r backtick-se/cowait -o dataset.pickle
 """
 
 # Values to extract from PR json response
@@ -30,14 +35,19 @@ cm_keys = (
 	'stats'
 )
 
+API_BASE = 'https://api.github.com'
+GIT_BASE = 'https://github.com'
+
 # Get url for repo cloning from user/repo
-cl_url = lambda user, repo: f'https://github.com/{user}/{repo}.git'
+cl_url = lambda user, repo: f'{GIT_BASE}/{user}/{repo}.git'
 # Get url for PR fetching from user/repo
-pr_url = lambda user, repo: f'https://api.github.com/repos/{user}/{repo}/issues?per_page=100&state=closed'
+pr_url = lambda user, repo: f'{API_BASE}/repos/{user}/{repo}/issues?per_page=100&state=closed'
 # Get url for commits belonging to a PR
-cs_url = lambda user, repo, pnr: f'https://api.github.com/repos/{user}/{repo}/pulls/{pnr}/commits'
+cs_url = lambda user, repo, pnr: f'{API_BASE}/repos/{user}/{repo}/pulls/{pnr}/commits'
 # Get url for commit content of certain commit
-cm_url = lambda user, repo, sha: f'https://api.github.com/repos/{user}/{repo}/commits/{sha}'
+cm_url = lambda user, repo, sha: f'{API_BASE}/repos/{user}/{repo}/commits/{sha}'
+# Get url for listing all available repo labels
+lb_url = lambda user, repo: f'{API_BASE}/repos/{user}/{repo}/labels'
 
 # Checkout every PR and extend with doc data
 def extract_docs(cwd, data):
@@ -97,22 +107,41 @@ def get_commits(pnr, token, u, r):
 	
 	return [*map(keyper(cm_keys), commits)]
 
+def categorize(data, label_map):
+
+	def extract_categories(pr):
+		labels = [*map(lambda l: l['name'], pr['labels'])]
+		return [label_map[l] for l in labels if l in label_map]
+	
+	return [{'category': extract_categories(pr), **pr} for pr in data]
+	
+
+
 @click.command()
 @click.option('--token', '-t', help='GitHub API user authentication token')
-@click.option('--repo', '-r', help='Target user and repo: e.g backtick-se/cowait')
-@click.option('--out', '-o', help='Outfile path', default=None)
-@click.option('--docs', '-d', is_flag=True, default=False)
-@click.option('--resume', '-c', is_flag=True, default=False)
-def run(token: str, repo: str, out: str, docs: bool, resume: bool):
-	"""
-    Ex. usage:
-    python build.py -t $token -r backtick-se/cowait -o dataset.pickle
-    """
+@click.option('--repo', '-r', help='Target owner and repo: e.g backtick-se/cowait')
+@click.option('--out', '-o', help='Outfile path. Defaults to data/prd_owner_repo.pickle', default=None)
+@click.option('--docs', '-d', help='Boolean flag for doc state extraction', is_flag=True, default=False)
+@click.option('--resume', '-c', help='Resume from paused dataset build', is_flag=True, default=False)
+@click.option('--labelcat', '-l', help='Set categories based on labels', is_flag=True, default=False)
+def run(token: str, repo: str, out: str, docs: bool, resume: bool, labelcat: bool):
 
 	# User, repo
 	u, r = repo.split('/')
 
 	out = out if out else f'data/prd_{u}_{r}.pickle'
+
+	label_map = {}
+
+	if labelcat:
+		click.echo('Please select category mapping for each label')
+		labels, _	= fetch_data(token, lb_url(u, r))
+		
+		for l in labels:
+			name = l['name']
+			desc = l['description']
+			cat = input(f'{name} // {desc}: ')
+			label_map[name] = cat if cat else None
 
 	if not resume:
 		# Get the PR data
@@ -137,6 +166,9 @@ def run(token: str, repo: str, out: str, docs: bool, resume: bool):
 	except ConnectionError as e:
 		fetched = len([*filter(lambda pr: 'commits' in pr, data)])
 		click.echo(f'Ran out of API calls, {fetched}/{len(data)} prs complete')
+
+	click.echo(f'Attempting automatic categorization...')
+	data = categorize(data, label_map)
 
 	click.echo(f'Done! Saving to {out}')
 
