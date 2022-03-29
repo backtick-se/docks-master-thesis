@@ -1,8 +1,14 @@
 import { useState } from 'react'
-import data from './data.json'
 import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+
+const Center = styled('div')`
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+`
 
 const Wrapper = styled('div')`
     display: flex;
@@ -63,12 +69,21 @@ const NON_DOC_BREAK = 'NON_DOC_BREAK'
 const DOC_CHANGE = 'DOC_CHANGE'
 
 const App = () => {
+    const [data, setData] = useState(null)
     const [current, setCurrent] = useState(0)
     const [accepted, setAccepted] = useState([])
     const [rejected, setRejected] = useState([])
     const [docpage, setDocpage] = useState(0)
     const [selected, setSelected] = useState([])
     const [category, setCategory] = useState(NON_DOC_BREAK)
+
+    const handleFile = (e) => {
+        const fileReader = new FileReader()
+        fileReader.readAsText(e.target.files[0], 'UTF-8')
+        fileReader.onload = (e) => {
+            setData(JSON.parse(e.target.result))
+        }
+    }
 
     const next = () => {
         setCurrent(current + 1)
@@ -131,131 +146,169 @@ const App = () => {
 
     return (
         <Wrapper>
-            <Content>
-                <Stats>
-                    <span>
-                        <b>Accepted:</b> {accepted.length}
-                    </span>
-                    <span>
-                        <b>Rejected:</b> {rejected.length}
-                    </span>
-                    <div style={{ flexGrow: 1 }} />
-                    <button onClick={onSave}>Save</button>
-                </Stats>
-                {data[current] && (
-                    <>
-                        <Features>
-                            <LabelHead>
-                                <span>{data[current].number}</span>
-                                <span>
-                                    {current + 1} / {data.length}
-                                </span>
-                            </LabelHead>
-                            <br />
-                            <LabelHead>
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="DOC_BREAK"
-                                        checked={category === DOC_BREAK}
-                                        onClick={onCategoryChange}
-                                        value={DOC_BREAK}
-                                    />
-                                    Doc break
-                                </label>
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="NON_DOC_BREAK"
-                                        checked={category === NON_DOC_BREAK}
-                                        onClick={onCategoryChange}
-                                        value={NON_DOC_BREAK}
-                                    />
-                                    No doc break
-                                </label>
-                                <label>
-                                    <input
-                                        type="radio"
-                                        name="DOC_CHANGE"
-                                        checked={category === DOC_CHANGE}
-                                        onClick={onCategoryChange}
-                                        value={DOC_CHANGE}
-                                    />
-                                    Doc change
-                                </label>
-                            </LabelHead>
-                            <h1>{data[current].title}</h1>
-                            <ReactMarkdown rehypePlugins={[rehypeRaw]}>
-                                {data[current].body}
-                            </ReactMarkdown>
-                            <h2>Commits:</h2>
-                            {data[current].commits.map((commit, i) => (
-                                <>
-                                    <Commit>
-                                        <LabelHead>
-                                            <b>{commit.commit.message}</b>
-                                            <b
-                                                style={{ whiteSpace: 'nowrap' }}
-                                            >{`+${commit.stats['additions']} -${commit.stats['deletions']}`}</b>
-                                        </LabelHead>
-                                        <br />
-                                        {commit.files.map(({ filename }) => (
-                                            <>
-                                                <i>{filename}</i>
+            {data ? (
+                <>
+                    <Content>
+                        <Stats>
+                            <span>
+                                <b>Accepted:</b> {accepted.length}
+                            </span>
+                            <span>
+                                <b>Rejected:</b> {rejected.length}
+                            </span>
+                            <div style={{ flexGrow: 1 }} />
+                            <button onClick={onSave}>Save</button>
+                        </Stats>
+                        {data[current] && (
+                            <>
+                                <Features>
+                                    <LabelHead>
+                                        <span>{data[current].number}</span>
+                                        <span>
+                                            {current + 1} / {data.length}
+                                        </span>
+                                    </LabelHead>
+                                    <br />
+                                    <LabelHead>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="DOC_BREAK"
+                                                checked={category === DOC_BREAK}
+                                                onClick={onCategoryChange}
+                                                value={DOC_BREAK}
+                                            />
+                                            Doc break
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="NON_DOC_BREAK"
+                                                checked={
+                                                    category === NON_DOC_BREAK
+                                                }
+                                                onClick={onCategoryChange}
+                                                value={NON_DOC_BREAK}
+                                            />
+                                            No doc break
+                                        </label>
+                                        <label>
+                                            <input
+                                                type="radio"
+                                                name="DOC_CHANGE"
+                                                checked={
+                                                    category === DOC_CHANGE
+                                                }
+                                                onClick={onCategoryChange}
+                                                value={DOC_CHANGE}
+                                            />
+                                            Doc change
+                                        </label>
+                                    </LabelHead>
+                                    {data[current].prediction && (
+                                        <>
+                                            <br />
+                                            <b>Prediction:</b>
+                                            <br />
+                                            {data[current].prediction.map(
+                                                (pred) => (
+                                                    <span>{pred}</span>
+                                                )
+                                            )}
+                                        </>
+                                    )}
+                                    <h1>{data[current].title}</h1>
+                                    <ReactMarkdown rehypePlugins={[rehypeRaw]}>
+                                        {data[current].body}
+                                    </ReactMarkdown>
+                                    <h2>Commits:</h2>
+                                    {data[current].commits.map((commit, i) => (
+                                        <>
+                                            <Commit>
+                                                <LabelHead>
+                                                    <b>
+                                                        {commit.commit.message}
+                                                    </b>
+                                                    <b
+                                                        style={{
+                                                            whiteSpace:
+                                                                'nowrap',
+                                                        }}
+                                                    >{`+${commit.stats['additions']} -${commit.stats['deletions']}`}</b>
+                                                </LabelHead>
                                                 <br />
-                                            </>
-                                        ))}
-                                    </Commit>
-                                </>
-                            ))}
-                        </Features>
-                        <Labels>
-                            <LabelHead>
-                                <span>
-                                    <input
-                                        type="radio"
-                                        name="docpage"
-                                        checked={selected.includes(
-                                            data[current].docs[docpage][0]
-                                        )}
-                                        onClick={onRadioChange}
-                                        value={docpage}
-                                    />
-                                </span>
-                                <span>
-                                    <button onClick={onPrevDoc}>Prev</button>
-                                    &nbsp;
-                                    <button onClick={onNextDoc}>Next</button>
-                                </span>
-                                <span>
-                                    {docpage} / {data[current].docs.length - 1}
-                                </span>
-                            </LabelHead>
-                            <br />
-                            {selected.map((s) => (
-                                <span>
-                                    <b>Selected:</b> {s}
-                                </span>
-                            ))}
-                            <br />
-                            <LabelHead>
-                                <span>
-                                    <b>Current:</b>{' '}
-                                    {data[current].docs[docpage][0]}
-                                </span>
-                            </LabelHead>
-                            <ReactMarkdown>
-                                {data[current].docs[docpage][1]}
-                            </ReactMarkdown>
-                        </Labels>
-                    </>
-                )}
-            </Content>
-            <Foot>
-                <button onClick={onReject}>Reject Datapoint</button>
-                &nbsp;
-                <button onClick={onAccept}>Accept Selection</button>
-            </Foot>
+                                                {commit.files.map(
+                                                    ({ filename }) => (
+                                                        <>
+                                                            <i>{filename}</i>
+                                                            <br />
+                                                        </>
+                                                    )
+                                                )}
+                                            </Commit>
+                                        </>
+                                    ))}
+                                </Features>
+                                <Labels>
+                                    <LabelHead>
+                                        <span>
+                                            <input
+                                                type="radio"
+                                                name="docpage"
+                                                checked={selected.includes(
+                                                    data[current].docs[
+                                                        docpage
+                                                    ][0]
+                                                )}
+                                                onClick={onRadioChange}
+                                                value={docpage}
+                                            />
+                                        </span>
+                                        <span>
+                                            <button onClick={onPrevDoc}>
+                                                Prev
+                                            </button>
+                                            &nbsp;
+                                            <button onClick={onNextDoc}>
+                                                Next
+                                            </button>
+                                        </span>
+                                        <span>
+                                            {docpage} /{' '}
+                                            {data[current].docs.length - 1}
+                                        </span>
+                                    </LabelHead>
+                                    <br />
+                                    {selected.map((s) => (
+                                        <span>
+                                            <b>Selected:</b> {s}
+                                        </span>
+                                    ))}
+                                    <br />
+                                    <LabelHead>
+                                        <span>
+                                            <b>Current:</b>{' '}
+                                            {data[current].docs[docpage][0]}
+                                        </span>
+                                    </LabelHead>
+                                    <ReactMarkdown>
+                                        {data[current].docs[docpage][1]}
+                                    </ReactMarkdown>
+                                </Labels>
+                            </>
+                        )}
+                    </Content>
+                    <Foot>
+                        <button onClick={onReject}>Reject Datapoint</button>
+                        &nbsp;
+                        <button onClick={onAccept}>Accept Selection</button>
+                    </Foot>
+                </>
+            ) : (
+                <Center>
+                    <input type="file" onChange={handleFile} accept="json" />
+                </Center>
+            )}
         </Wrapper>
     )
 }
