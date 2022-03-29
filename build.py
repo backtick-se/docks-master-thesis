@@ -146,12 +146,12 @@ def run(token: str, repo: str, out: str, docs: bool, resume: bool, labelcat: boo
 	if not resume:
 		# Get the PR data
 		click.echo('Fetching PR data...')
-		pr_data = get_pull_requests(token, u, r)
+		data = get_pull_requests(token, u, r)
 
 		if docs:
 			# Clone, checkout and save doc state for every PR
 			click.echo('Extracting doc states...')
-			data = cloned(cl_url(u, r))(extract_docs)(tqdm(pr_data))
+			data = cloned(cl_url(u, r))(extract_docs)(tqdm(data))
 	
 		click.echo('Fetching commit data...')
 	else:
