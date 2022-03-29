@@ -6,6 +6,11 @@ from github_fetch import fetch_responses, parse_pull_requests, fetch_data
 from utils import dump, quiet_flag, cloned, keyper, single, load
 from os import getcwd
 
+"""
+Dataset building script. PRs from provided repo will be fetched in the following format:
+Out: [{pr_keys, commits:[cm_keys], docs (optional):[(filepath, content)]}]
+"""
+
 # Values to extract from PR json response
 pr_keys = (
 	'number',
@@ -96,9 +101,9 @@ def get_commits(pnr, token, u, r):
 @click.option('--token', '-t', help='GitHub API user authentication token')
 @click.option('--repo', '-r', help='Target user and repo: e.g backtick-se/cowait')
 @click.option('--out', '-o', help='Outfile path', default=None)
-@click.option('--annotate', '-a', is_flag=True, default=False)
+@click.option('--docs', '-d', is_flag=True, default=False)
 @click.option('--resume', '-c', is_flag=True, default=False)
-def run(token: str, repo: str, out: str, annotate: bool, resume: bool):
+def run(token: str, repo: str, out: str, docs: bool, resume: bool):
 	"""
     Ex. usage:
     python build.py -t $token -r backtick-se/cowait -o dataset.pickle
@@ -114,9 +119,10 @@ def run(token: str, repo: str, out: str, annotate: bool, resume: bool):
 		click.echo('Fetching PR data...')
 		pr_data = get_pull_requests(token, u, r)
 
-		# Clone, checkout and save doc state for every PR
-		click.echo('Extracting doc states...')
-		data = cloned(cl_url(u, r))(extract_docs)(tqdm(pr_data))
+		if docs:
+			# Clone, checkout and save doc state for every PR
+			click.echo('Extracting doc states...')
+			data = cloned(cl_url(u, r))(extract_docs)(tqdm(pr_data))
 	
 		click.echo('Fetching commit data...')
 	else:
@@ -133,10 +139,6 @@ def run(token: str, repo: str, out: str, annotate: bool, resume: bool):
 		click.echo(f'Ran out of API calls, {fetched}/{len(data)} prs complete')
 
 	click.echo(f'Done! Saving to {out}')
-
-	if annotate:
-		click.echo(f'Saving copy for annotation...')
-		dump(data, 'annotator/src/data.json')
 
 	dump(data, out)
 

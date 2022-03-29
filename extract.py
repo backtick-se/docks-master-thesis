@@ -52,17 +52,6 @@ class Extractor:
 		contents = [*map(self.get_content, paths)]
 
 		return paths, contents
-		
-		# Map function to file
-		# Choose n_files random files
-		# Extract n_funcs from each file
-		# Save context as {function_id: [context_function_id]}
-
-		#context_files = random.sample(files, min(n_files, len(files)))
-		#context = {}
-
-		#for path in n_files:
-			#context[]
 
 		
 
