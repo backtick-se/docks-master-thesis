@@ -90,7 +90,7 @@ const App = () => {
     // TODO: FIX new category selector
 
     useEffect(() => {
-        if (data && data[current].category) {
+        if (data && data[current] && data[current].category) {
             setCategory(data[current].category)
         } else {
             setCategory(null)
@@ -106,7 +106,7 @@ const App = () => {
     }
 
     const next = () => {
-        if (current < data.length) {
+        if (current < data.length - 1) {
             setCurrent(current + 1)
         }
     }
@@ -122,7 +122,6 @@ const App = () => {
     }
 
     const onAccept = () => {
-        console.log(data[current])
         setAccepted([
             { ...data[current], target: selected, category: category },
             ...accepted,
