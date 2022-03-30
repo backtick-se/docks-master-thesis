@@ -48,7 +48,7 @@ def md_to_text(md: str):
 	return ''.join(bf(html).findAll(text=True))
 
 # Get latest release from list of tags
-def get_latest(tags: list[str]):
+def get_latest(tags):
 	return sorted(tags, key=version.parse)[-1]
 
 # Return only first item from list-returning function
