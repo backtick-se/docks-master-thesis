@@ -183,7 +183,7 @@ const App = () => {
                             <>
                                 <Features>
                                     <LabelHead>
-                                        <span>{data[current].number}</span>
+                                        <span><a href={data[current].pull_request.html_url}>{data[current].number}</a></span>
                                         <span>
                                             {current + 1} / {data.length}
                                         </span>
