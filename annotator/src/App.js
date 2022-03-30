@@ -179,11 +179,11 @@ const App = () => {
                             <div style={{ flexGrow: 1 }} />
                             <button onClick={onSave}>Save</button>
                         </Stats>
-                        {data[current] && (
+                        {data[current] && (accepted.length + rejected.length < data.length) && (
                             <>
                                 <Features>
                                     <LabelHead>
-                                        <span>{data[current].number}</span>
+                                        <span><a href={data[current].pull_request.html_url}>{data[current].number}</a></span>
                                         <span>
                                             {current + 1} / {data.length}
                                         </span>
@@ -309,9 +309,9 @@ const App = () => {
                         )}
                     </Content>
                     <Foot>
-                        <button onClick={onReject}>Reject Datapoint</button>
+                        <button onClick={onReject} disabled={accepted.length + rejected.length >= data.length}>Reject Datapoint</button>
                         &nbsp;
-                        <button onClick={onAccept}>Accept Selection</button>
+                        <button onClick={onAccept} disabled={accepted.length + rejected.length >= data.length}>Accept Selection</button>
                     </Foot>
                 </>
             ) : (
