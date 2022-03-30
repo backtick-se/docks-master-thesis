@@ -159,6 +159,7 @@ def run(token: str, repo: str, format: str, docs: bool, resume: bool, labelcat: 
 		# Get the PR data
 		click.echo('Fetching PR data...')
 		data = get_pull_requests(token, u, r)
+		click.echo(f'Fetched {len(data)} PRs...')
 
 		if docs:
 			# Clone, checkout and save doc state for every PR
