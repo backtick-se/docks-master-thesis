@@ -106,7 +106,11 @@ const App = () => {
     }
 
     const next = () => {
-        setCurrent(current + 1)
+        if (current < data.length) {
+            setCurrent(current + 1)
+        } else {
+            setCurrent(0)
+        }
     }
 
     const onSave = () => {
