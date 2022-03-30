@@ -16,6 +16,13 @@ Ex. usage:
 python build.py -t $token -r backtick-se/cowait -o dataset.pickle
 """
 
+categories = (
+	'fix-bugs',
+	'new-features',
+	'documentation',
+	'non-functional'
+)
+
 # Values to extract from PR json response
 pr_keys = (
 	'number',
@@ -93,56 +100,61 @@ def get_pull_requests(token, u, r):
 def get_commits(pnr, token, u, r):
 	# Get extended commit info for a sha
 	get_commit = lambda sha: single(fetch_data)(
-		token, cm_url(u, r, sha),
+		token, cm_url(u, r, sha)
 	)
 
 	# Get from /pr url, extract sha and fetch full
-	pr_cms, rem	= fetch_data(token, cs_url(u, r, pnr))
+	pr_cms, rem	= fetch_data(token, cs_url(u, r, pnr), get_remaining=True)
 	shas = [*map(lambda c: c['sha'], pr_cms)]
 
 	if int(rem) < len(shas):
 		raise ConnectionError('Out of API calls')
 	else:
 		commits = [*map(get_commit, shas)]
-	
+
 	return [*map(keyper(cm_keys), commits)]
 
 def categorize(data, label_map):
 
-	def extract_categories(pr):
+	def extract_category(pr):
 		labels = [*map(lambda l: l['name'], pr['labels'])]
-		return [label_map[l] for l in labels if l in label_map]
+		cats =  [label_map[l] for l in labels]
+		return max(set(cats), key=cats.count) if cats else None
 	
-	return [{'category': extract_categories(pr), **pr} for pr in data]
+	return [{'category': extract_category(pr), **pr} for pr in data]
 	
 
 
 @click.command()
 @click.option('--token', '-t', help='GitHub API user authentication token')
 @click.option('--repo', '-r', help='Target owner and repo: e.g backtick-se/cowait')
-@click.option('--out', '-o', help='Outfile path. Defaults to data/prd_owner_repo.pickle', default=None)
+@click.option('--format', '-f', help='Output file format, defaults to pickle', default='pickle')
 @click.option('--docs', '-d', help='Boolean flag for doc state extraction', is_flag=True, default=False)
 @click.option('--resume', '-c', help='Resume from paused dataset build', is_flag=True, default=False)
 @click.option('--labelcat', '-l', help='Set categories based on labels', is_flag=True, default=False)
-def run(token: str, repo: str, out: str, docs: bool, resume: bool, labelcat: bool):
+def run(token: str, repo: str, format: str, docs: bool, resume: bool, labelcat: bool):
 
 	# User, repo
 	u, r = repo.split('/')
 
-	out = out if out else f'data/prd_{u}_{r}.pickle'
+	out = f'data/prd_{u}_{r}.{format}'
 
 	label_map = {}
 
 	if labelcat:
-		click.echo('Please select category mapping for each label')
-		labels, _	= fetch_data(token, lb_url(u, r))
+		scheme = [(i, k) for i, k in enumerate(categories)]
+		click.echo(scheme)
+		labels = fetch_data(token, lb_url(u, r))
+		click.echo(f'Please select category mapping for each label ({len(labels)=})')
 		
 		for l in labels:
 			name = l['name']
 			desc = l['description']
 			cat = input(f'{name} // {desc}: ')
-			label_map[name] = cat if cat else None
+			label_map[name] = categories[int(cat)] if cat else None
 
+		print(label_map)
+		
 	if not resume:
 		# Get the PR data
 		click.echo('Fetching PR data...')
@@ -161,7 +173,7 @@ def run(token: str, repo: str, out: str, docs: bool, resume: bool, labelcat: boo
 	
 	# Fetch, filter and add commit data to PRs
 	try:
-		for pr in tqdm(*filter(lambda p: 'commits' not in p, data)):
+		for pr in tqdm([*filter(lambda p: 'commits' not in p, data)]):
 			pr['commits'] = get_commits(pr['number'], token, u, r)
 	except ConnectionError as e:
 		fetched = len([*filter(lambda pr: 'commits' in pr, data)])

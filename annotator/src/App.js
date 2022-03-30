@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import styled from 'styled-components'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
@@ -16,6 +16,13 @@ const Wrapper = styled('div')`
     height: 100vh;
     flex-direction: column;
     overflow: hidden;
+`
+
+const TargetBox = styled('div')`
+    display: flex;
+    border: solid 1px rgba(0, 0, 0, 0.2);
+    justify-content: space-between;
+    padding: 1rem;
 `
 
 const Foot = styled('div')`
@@ -64,9 +71,12 @@ const Commit = styled('span')`
     margin-bottom: 0.4rem;
 `
 
-const DOC_BREAK = 'DOC_BREAK'
-const NON_DOC_BREAK = 'NON_DOC_BREAK'
-const DOC_CHANGE = 'DOC_CHANGE'
+const categories = [
+    'fix-bugs',
+    'new-features',
+    'documentation',
+    'non-functional',
+]
 
 const App = () => {
     const [data, setData] = useState(null)
@@ -75,7 +85,17 @@ const App = () => {
     const [rejected, setRejected] = useState([])
     const [docpage, setDocpage] = useState(0)
     const [selected, setSelected] = useState([])
-    const [category, setCategory] = useState(NON_DOC_BREAK)
+    const [category, setCategory] = useState(null)
+
+    // TODO: FIX new category selector
+
+    useEffect(() => {
+        if (data && data[current].category) {
+            setCategory(data[current].category)
+        } else {
+            setCategory(null)
+        }
+    }, [data, current])
 
     const handleFile = (e) => {
         const fileReader = new FileReader()
@@ -107,7 +127,6 @@ const App = () => {
         ])
         setDocpage(0)
         setSelected([])
-        setCategory(NON_DOC_BREAK)
         next()
     }
 
@@ -169,42 +188,28 @@ const App = () => {
                                         </span>
                                     </LabelHead>
                                     <br />
+                                    <TargetBox>
+                                        <b>Select target:</b>
+                                        {categories.map((cat) => (
+                                            <label key={cat}>
+                                                <input
+                                                    type="radio"
+                                                    name={cat}
+                                                    checked={category === cat}
+                                                    onClick={onCategoryChange}
+                                                    value={cat}
+                                                />
+                                                {cat}
+                                            </label>
+                                        ))}
+                                    </TargetBox>
+                                    <br />
                                     <LabelHead>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                name="DOC_BREAK"
-                                                checked={category === DOC_BREAK}
-                                                onClick={onCategoryChange}
-                                                value={DOC_BREAK}
-                                            />
-                                            Doc break
-                                        </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                name="NON_DOC_BREAK"
-                                                checked={
-                                                    category === NON_DOC_BREAK
-                                                }
-                                                onClick={onCategoryChange}
-                                                value={NON_DOC_BREAK}
-                                            />
-                                            No doc break
-                                        </label>
-                                        <label>
-                                            <input
-                                                type="radio"
-                                                name="DOC_CHANGE"
-                                                checked={
-                                                    category === DOC_CHANGE
-                                                }
-                                                onClick={onCategoryChange}
-                                                value={DOC_CHANGE}
-                                            />
-                                            Doc change
-                                        </label>
+                                        {data[current].labels.map((label) => (
+                                            <span>{label.name}</span>
+                                        ))}
                                     </LabelHead>
+
                                     {data[current].prediction && (
                                         <>
                                             <br />
@@ -212,7 +217,9 @@ const App = () => {
                                             <br />
                                             {data[current].prediction.map(
                                                 (pred) => (
-                                                    <span>{pred}</span>
+                                                    <span key={pred}>
+                                                        {pred}
+                                                    </span>
                                                 )
                                             )}
                                         </>
@@ -249,52 +256,54 @@ const App = () => {
                                         </>
                                     ))}
                                 </Features>
-                                <Labels>
-                                    <LabelHead>
-                                        <span>
-                                            <input
-                                                type="radio"
-                                                name="docpage"
-                                                checked={selected.includes(
-                                                    data[current].docs[
-                                                        docpage
-                                                    ][0]
-                                                )}
-                                                onClick={onRadioChange}
-                                                value={docpage}
-                                            />
-                                        </span>
-                                        <span>
-                                            <button onClick={onPrevDoc}>
-                                                Prev
-                                            </button>
-                                            &nbsp;
-                                            <button onClick={onNextDoc}>
-                                                Next
-                                            </button>
-                                        </span>
-                                        <span>
-                                            {docpage} /{' '}
-                                            {data[current].docs.length - 1}
-                                        </span>
-                                    </LabelHead>
-                                    <br />
-                                    {selected.map((s) => (
-                                        <span>
-                                            <b>Selected:</b> {s}
-                                        </span>
-                                    ))}
-                                    <br />
-                                    <LabelHead>
-                                        <span>
-                                            <b>Current:</b>{' '}
-                                            {data[current].docs[docpage][0]}
-                                        </span>
-                                    </LabelHead>
-                                    <ReactMarkdown>
-                                        {data[current].docs[docpage][1]}
-                                    </ReactMarkdown>
-                                </Labels>
+                                {data[current].docs && (
+                                    <Labels>
+                                        <LabelHead>
+                                            <span>
+                                                <input
+                                                    type="radio"
+                                                    name="docpage"
+                                                    checked={selected.includes(
+                                                        data[current].docs[
+                                                            docpage
+                                                        ][0]
+                                                    )}
+                                                    onClick={onRadioChange}
+                                                    value={docpage}
+                                                />
+                                            </span>
+                                            <span>
+                                                <button onClick={onPrevDoc}>
+                                                    Prev
+                                                </button>
+                                                &nbsp;
+                                                <button onClick={onNextDoc}>
+                                                    Next
+                                                </button>
+                                            </span>
+                                            <span>
+                                                {docpage} /{' '}
+                                                {data[current].docs.length - 1}
+                                            </span>
+                                        </LabelHead>
+                                        <br />
+                                        {selected.map((s) => (
+                                            <span>
+                                                <b>Selected:</b> {s}
+                                            </span>
+                                        ))}
+                                        <br />
+                                        <LabelHead>
+                                            <span>
+                                                <b>Current:</b>{' '}
+                                                {data[current].docs[docpage][0]}
+                                            </span>
+                                        </LabelHead>
+                                        <ReactMarkdown>
+                                            {data[current].docs[docpage][1]}
+                                        </ReactMarkdown>
+                                    </Labels>
+                                )}
                             </>
                         )}
                     </Content>

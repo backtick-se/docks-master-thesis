@@ -25,7 +25,7 @@ def parse_pull_requests(responses):
 	return pull_requests
 
 # General fetch+parse function
-def fetch_data(token, url):
+def fetch_data(token, url, get_remaining=False):
 	responses = fetch_responses(token, url)
 	remaining = responses[-1].headers['X-RateLimit-Remaining']
 	
@@ -38,8 +38,11 @@ def fetch_data(token, url):
 			ret += data
 		else:
 			ret.append(data)
-
-	return ret, remaining
+	
+	if get_remaining:
+		return ret, remaining
+	
+	return ret
 
 def parse_requests(input_file, output_file):
 	with open(input_file, 'rb') as f:
