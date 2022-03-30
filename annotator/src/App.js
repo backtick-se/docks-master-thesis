@@ -108,8 +108,6 @@ const App = () => {
     const next = () => {
         if (current < data.length) {
             setCurrent(current + 1)
-        } else {
-            setCurrent(0)
         }
     }
 
