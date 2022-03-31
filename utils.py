@@ -13,6 +13,14 @@ quiet_flag = '&> /dev/null'
 # Keep subset of keys from dict: keyper(tuple_with_keys)(dict)
 keyper = lambda keys: lambda dict: {k: dict[k] for k in keys}
 
+def load_ft_data(path):
+	ptrn = re.compile('__label__(.*?)\s(.*)')
+	ft_data = load(path)
+	ft_data = ft_data.split('\n')[:-1]
+	labels = [*map(lambda row: ptrn.match(row).group(1), ft_data)]
+	titles = [*map(lambda row: ptrn.match(row).group(2), ft_data)]
+	return titles, labels
+
 # Load file
 def load(file):
 	if not isfile(file):
