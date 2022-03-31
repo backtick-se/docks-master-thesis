@@ -13,6 +13,13 @@ quiet_flag = '&> /dev/null'
 # Keep subset of keys from dict: keyper(tuple_with_keys)(dict)
 keyper = lambda keys: lambda dict: {k: dict[k] for k in keys}
 
+categories = (
+	'fix-bugs',
+	'new-features',
+	'documentation',
+	'non-functional'
+)
+
 def load_ft_data(path):
 	ptrn = re.compile('__label__(.*?)\s(.*)')
 	ft_data = load(path)
