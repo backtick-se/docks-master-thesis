@@ -20,7 +20,7 @@ categories = (
 	'non-functional'
 )
 
-def load_ft_data(path):
+def load_ft_data(path, balanced=False):
 	ptrn = re.compile('__label__(.*?)\s(.*)')
 	ft_data = load(path)
 	ft_data = ft_data.split('\n')[:-1]
