@@ -7,6 +7,7 @@ from os import getcwd
 import subprocess
 import json
 import re
+import csv
 
 quiet_flag = '&> /dev/null'
 
@@ -93,3 +94,12 @@ def cloned(url):
 	
 	return decorator
 	
+
+def fasttext_csv(data_path = "data/fasttext_data.valid"):
+    """Export DeepRelease data as csv so that it can be imported and annotated in tools like Google Spreadsheets """
+    titles, labels = load_ft_data(data_path)
+    with open('data/fasttext_data.valid.csv', 'w') as f:
+        writer = csv.DictWriter(f, fieldnames=['title', 'label'])
+        writer.writeheader()
+        for title, label in zip(titles, labels):
+            writer.writerow({'title': title, 'label': label})
