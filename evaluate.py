@@ -8,13 +8,18 @@ def eval(y_true, y_pred):
     print(classification_report(y_true, y_pred, labels=categories))
     print(confusion_matrix(y_true, y_pred, labels=categories))
 
-def load_trained(base, path):
+def load_trained(path):
 	logging.set_verbosity_error()
+	
+	cp = torch.load(path, map_location=torch.device('cpu'))
+	base = cp['base']
+
 	model = AutoModelForSequenceClassification.from_pretrained(base, num_labels=len(categories))
 	tokenizer = AutoTokenizer.from_pretrained(base)
 
-	cp = torch.load(path, map_location=torch.device('cpu'))
-	model.load_state_dict(cp['model_state_dict'])
+	best_state = cp['best_state']
+
+	model.load_state_dict(best_state['model_state_dict'])
 	metrics = cp['metrics']
 
 	model.eval()
