@@ -51,7 +51,7 @@ def load_trained(path):
 
 		## Stackoverflow magic ##
 		xmin = x[np.argmin(vloss)]
-		ymin = vloss.min()
+		ymin = min(vloss)
 		text = f'Best model (loss: {ymin:.3f})'
 		bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
 		arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=60")
