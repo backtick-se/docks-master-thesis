@@ -12,7 +12,7 @@ def load_trained(path):
 	logging.set_verbosity_error()
 	
 	cp = torch.load(path, map_location=torch.device('cpu'))
-	maxlen = cp['max_length']
+	max_length = cp['max_length']
 	base = cp['base']
 
 	model = AutoModelForSequenceClassification.from_pretrained(base, num_labels=len(categories))
@@ -26,7 +26,7 @@ def load_trained(path):
 	model.eval()
 
 	def predict(text):
-		inputs = tokenizer(text, padding='max_length', truncation=True, return_tensors="pt")
+		inputs = tokenizer(text, padding='max_length', truncation=True, max_length=max_length, return_tensors="pt")
 		outputs = model(**inputs)
 		logits = outputs.logits
 		pred = torch.argmax(logits, dim=-1)
