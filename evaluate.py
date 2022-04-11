@@ -2,6 +2,7 @@ from utils import categories
 from sklearn.metrics import confusion_matrix, classification_report
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, logging
 import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 def eval(y_true, y_pred):
@@ -43,10 +44,20 @@ def load_trained(path):
 		fig, ax = plt.subplots(3, sharex=True)
 		fig.suptitle('Model Training Progress')
 
+		fig.set_figheight(10)
+		fig.set_figwidth(10)
+
 		x = range(1, len(metrics) + 1)
 
-		fig.set_figheight(8)
-		fig.set_figwidth(10)
+		## Stackoverflow magic ##
+		xmin = x[np.argmin(vloss)]
+		ymin = vloss.min()
+		text = f'Best model (loss: {ymin:.3f})'
+		bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
+		arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=60")
+		kw = dict(xycoords='data',textcoords="axes fraction", arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
+		ax[0].annotate(text, xy=(xmin, ymin), xytext=(0.94,0.96), **kw)
+		###########################
 
 		ax[0].plot(x, tloss, 'bo-')
 		ax[0].plot(x, vloss, 'go-')
