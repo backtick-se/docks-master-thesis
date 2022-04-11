@@ -12,6 +12,7 @@ def load_trained(path):
 	logging.set_verbosity_error()
 	
 	cp = torch.load(path, map_location=torch.device('cpu'))
+	maxlen = cp['max_length']
 	base = cp['base']
 
 	model = AutoModelForSequenceClassification.from_pretrained(base, num_labels=len(categories))
