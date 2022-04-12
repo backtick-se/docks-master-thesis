@@ -12,6 +12,7 @@ class Evaluator:
 	def __init__(self, path):
 		logging.set_verbosity_error()
 		cp = torch.load(path, map_location=torch.device('cpu'))
+		self.file = path.split('/')[-1]
 
 		self.max_length = cp['max_length']
 		self.metrics = cp['metrics']
@@ -45,7 +46,7 @@ class Evaluator:
 	
 	def compare(self, other):
 		fig, ax = plt.subplots(3, sharex=True)
-		fig.suptitle('Model Progress Comparison')
+		fig.suptitle(f'Comparing {self.file} vs {other.file}')
 
 		fig.set_figheight(10)
 		fig.set_figwidth(10)
