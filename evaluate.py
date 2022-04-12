@@ -46,7 +46,7 @@ class Evaluator:
 
 	def plot_progress(self):
 		fig, ax = plt.subplots(3, sharex=True)
-		fig.suptitle('Model Training Progress')
+		fig.suptitle(f'Model Training Progress: {self.file}')
 
 		fig.set_figheight(10)
 		fig.set_figwidth(10)
