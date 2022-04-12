@@ -53,16 +53,16 @@ class Evaluator:
 		l = min(len(self.metrics), len(other.metrics))
 		x = range(1, l + 1)
 
-		ax[0].plot(x, self.vloss[:l], 'bo-')
-		ax[0].plot(x, other.vloss[:l], 'go-')
+		ax[0].plot(x, self.vloss[:l], '-o', markersize=3)
+		ax[0].plot(x, other.vloss[:l], '-o', markersize=3)
 		ax[0].set_ylabel('Loss')
 
-		ax[1].plot(x, self.vaccs[:l], 'bo-', label='Self validation')
-		ax[1].plot(x, other.vaccs[:l], 'go-', label='Other validation')
+		ax[1].plot(x, self.vaccs[:l], '-o', label='Self validation', markersize=3)
+		ax[1].plot(x, other.vaccs[:l], '-o', label='Other validation', markersize=3)
 		ax[1].set_ylabel('Accuracy')
 
-		ax[2].plot(x, self.vfone[:l], 'bo-')
-		ax[2].plot(x, other.vfone[:l], 'go-')
+		ax[2].plot(x, self.vfone[:l], '-o', markersize=3)
+		ax[2].plot(x, other.vfone[:l], '-o', markersize=3)
 		ax[2].set_ylabel('Macro F1')
 
 		fig.legend()
@@ -89,16 +89,16 @@ class Evaluator:
 		ax[0].annotate(text, xy=(xmin, ymin), xytext=(0.94,0.96), **kw)
 		###########################
 
-		ax[0].plot(x, self.tloss, 'bo-')
-		ax[0].plot(x, self.vloss, 'go-')
+		ax[0].plot(x, self.tloss, '-o', markersize=3)
+		ax[0].plot(x, self.vloss, '-o', markersize=3)
 		ax[0].set_ylabel('Loss')
 
-		ax[1].plot(x, self.taccs, 'bo-', label='Training')
-		ax[1].plot(x, self.vaccs, 'go-', label='Validation')
+		ax[1].plot(x, self.taccs, label='Training', '-o', markersize=3)
+		ax[1].plot(x, self.vaccs, label='Validation', '-o', markersize=3)
 		ax[1].set_ylabel('Accuracy')
 
-		ax[2].plot(x, self.tfone, 'bo-')
-		ax[2].plot(x, self.vfone, 'go-')
+		ax[2].plot(x, self.tfone, '-o', markersize=3)
+		ax[2].plot(x, self.vfone, '-o', markersize=3)
 		ax[2].set_ylabel('Macro F1')
 
 		fig.legend()
