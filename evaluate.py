@@ -43,33 +43,6 @@ class Evaluator:
 		logits = outputs.logits
 		pred = torch.argmax(logits, dim=-1)
 		return categories[pred]
-	
-	def compare(self, other):
-		fig, ax = plt.subplots(3, sharex=True)
-		fig.suptitle(f'Comparing {self.file} vs {other.file}')
-
-		fig.set_figheight(10)
-		fig.set_figwidth(10)
-
-		l = min(len(self.metrics), len(other.metrics))
-		x = range(1, l + 1)
-
-		ax[0].plot(x, self.vloss[:l], '-o', markersize=3)
-		ax[0].plot(x, other.vloss[:l], '-o', markersize=3)
-		ax[0].set_ylabel('Loss')
-
-		ax[1].plot(x, self.vaccs[:l], '-o', label='Self validation', markersize=3)
-		ax[1].plot(x, other.vaccs[:l], '-o', label='Other validation', markersize=3)
-		ax[1].set_ylabel('Accuracy')
-
-		ax[2].plot(x, self.vfone[:l], '-o', markersize=3)
-		ax[2].plot(x, other.vfone[:l], '-o', markersize=3)
-		ax[2].set_ylabel('Macro F1')
-
-		fig.legend()
-		plt.xlabel('Epoch')
-		plt.xticks(x)
-		plt.show()
 
 	def plot_progress(self):
 		fig, ax = plt.subplots(3, sharex=True)
@@ -102,6 +75,33 @@ class Evaluator:
 		ax[2].plot(x, self.vfone, '-o', markersize=3)
 		ax[2].set_ylabel('Macro F1')
 
+		fig.legend()
+		plt.xlabel('Epoch')
+		plt.xticks(x)
+		plt.show()
+	
+	@staticmethod
+	def compare(*paths):
+		num_models = len(paths)
+		evaluators = [Evaluator(path) for path in paths]
+
+		fig, ax = plt.subplots(3, sharex=True)
+		fig.suptitle(f'Comparing {num_models} {evaluators[0].base} models')
+
+		fig.set_figheight(10)
+		fig.set_figwidth(10)
+
+		l = min([*map(lambda ev: len(ev.metrics), evaluators)])
+		x = range(1, l + 1)
+
+		for ev in evaluators:
+			ax[0].plot(x, ev.vloss[:l], '-o', markersize=3, label=ev.file)
+			ax[1].plot(x, ev.vaccs[:l], '-o', markersize=3)
+			ax[2].plot(x, ev.vfone[:l], '-o', markersize=3)
+
+		ax[0].set_ylabel('Loss')
+		ax[1].set_ylabel('Accuracy')
+		ax[2].set_ylabel('Macro F1')
 		fig.legend()
 		plt.xlabel('Epoch')
 		plt.xticks(x)
