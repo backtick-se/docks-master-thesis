@@ -82,12 +82,9 @@ class Evaluator:
 	
 	@staticmethod
 	def compare(*paths):
-		num_models = len(paths)
 		evaluators = [Evaluator(path) for path in paths]
 
 		fig, ax = plt.subplots(3, sharex=True)
-		fig.suptitle(f'Comparing {num_models} {evaluators[0].base} models')
-
 		fig.set_figheight(10)
 		fig.set_figwidth(10)
 
