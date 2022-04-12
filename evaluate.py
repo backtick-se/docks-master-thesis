@@ -81,8 +81,8 @@ class Evaluator:
 		plt.show()
 	
 	@staticmethod
-	def compare(*paths):
-		evaluators = [Evaluator(path) for path in paths]
+	def compare(*models):
+		evaluators = [Evaluator(m) if type(m) != Evaluator else m for m in models]
 
 		fig, ax = plt.subplots(3, sharex=True)
 		fig.set_figheight(10)
