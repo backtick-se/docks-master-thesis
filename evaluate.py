@@ -9,6 +9,9 @@ def eval(y_true, y_pred):
     print(classification_report(y_true, y_pred, labels=categories))
     print(confusion_matrix(y_true, y_pred, labels=categories))
 class Evaluator:
+	fix_width = 12
+	fig_height = 12
+
 	def __init__(self, path):
 		logging.set_verbosity_error()
 		cp = torch.load(path, map_location=torch.device('cpu'))
@@ -48,8 +51,8 @@ class Evaluator:
 		fig, ax = plt.subplots(3, sharex=True)
 		fig.suptitle(f'Model Training Progress: {self.file}')
 
-		fig.set_figheight(10)
-		fig.set_figwidth(10)
+		fig.set_figheight(self.fig_height)
+		fig.set_figwidth(self.fig_width)
 
 		x = range(1, len(self.metrics) + 1)
 
@@ -85,8 +88,8 @@ class Evaluator:
 		evaluators = [Evaluator(m) if type(m) != Evaluator else m for m in models]
 
 		fig, ax = plt.subplots(3, sharex=True)
-		fig.set_figheight(10)
-		fig.set_figwidth(10)
+		fig.set_figheight(Evaluator.fig_height)
+		fig.set_figwidth(Evaluator.fig_width)
 
 		l = min([*map(lambda ev: len(ev.metrics), evaluators)])
 		x = range(1, l + 1)
