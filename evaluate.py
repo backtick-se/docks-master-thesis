@@ -93,8 +93,8 @@ class Evaluator:
 		ax[0].plot(x, self.vloss, '-o', markersize=3)
 		ax[0].set_ylabel('Loss')
 
-		ax[1].plot(x, self.taccs, label='Training', '-o', markersize=3)
-		ax[1].plot(x, self.vaccs, label='Validation', '-o', markersize=3)
+		ax[1].plot(x, self.taccs,  '-o', label='Training', markersize=3)
+		ax[1].plot(x, self.vaccs, '-o', label='Validation', markersize=3)
 		ax[1].set_ylabel('Accuracy')
 
 		ax[2].plot(x, self.tfone, '-o', markersize=3)
