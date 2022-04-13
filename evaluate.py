@@ -8,18 +8,19 @@ import torch
 def eval(y_true, y_pred):
     print(classification_report(y_true, y_pred, labels=categories))
     print(confusion_matrix(y_true, y_pred, labels=categories))
+
 class Evaluator:
-	fix_width = 12
-	fig_height = 12
+	fig_width = 15
+	fig_height = 15
 
 	def __init__(self, path):
 		logging.set_verbosity_error()
 		cp = torch.load(path, map_location=torch.device('cpu'))
 		self.file = path.split('/')[-1]
 
-		self.max_length = cp['max_length']
-		self.metrics = cp['metrics']
 		self.base = cp['base']
+		self.epochs = cp['epoch']
+		self.max_length = cp['max_length']
 		
 		self.tokenizer = AutoTokenizer.from_pretrained(self.base)
 
@@ -27,12 +28,22 @@ class Evaluator:
 		self.model.load_state_dict(cp['best_state']['model_state_dict'])
 		self.model.eval()
 
-		self.taccs = [*map(lambda e: e['train_acc']['accuracy'], self.metrics)]
-		self.vaccs = [*map(lambda e: e['val_acc']['accuracy'], self.metrics)]
-		self.tloss = [*map(lambda e: e['train_loss'], self.metrics)]
-		self.vloss = [*map(lambda e: e['val_loss'], self.metrics)]
-		self.tfone = [*map(lambda e: e['train_f1']['f1'], self.metrics)]
-		self.vfone = [*map(lambda e: e['val_f1']['f1'], self.metrics)]
+		metrics = cp['metrics']
+
+		self.metrics = {
+			'loss': {
+				'train': [*map(lambda e: e['train_loss'], metrics)],
+				'valid': [*map(lambda e: e['val_loss'], metrics)]
+			},
+			'accuracy': {
+				'train': [*map(lambda e: e['train_acc']['accuracy'], metrics)],
+				'valid': [*map(lambda e: e['val_acc']['accuracy'], metrics)]
+			},
+			'f1': {
+				'train': [*map(lambda e: e['train_f1']['f1'], metrics)],
+				'valid': [*map(lambda e: e['val_f1']['f1'], metrics)]
+			}
+		}
 	
 	def predict(self, input):
 		inputs = self.tokenizer(
@@ -48,17 +59,17 @@ class Evaluator:
 		return categories[pred]
 
 	def plot_progress(self):
-		fig, ax = plt.subplots(3, sharex=True)
+		fig, ax = plt.subplots(len(self.metrics), sharex=True)
 		fig.suptitle(f'Model Training Progress: {self.file}')
 
 		fig.set_figheight(self.fig_height)
 		fig.set_figwidth(self.fig_width)
 
-		x = range(1, len(self.metrics) + 1)
+		x = range(1, self.epochs + 1)
 
 		## Stackoverflow magic ##
-		xmin = x[np.argmin(self.vloss)]
-		ymin = min(self.vloss)
+		xmin = x[np.argmin(self.metrics['loss']['valid'])]
+		ymin = min(self.metrics['loss']['valid'])
 		text = f'Best model (loss: {ymin:.3f})'
 		bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
 		arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=60")
@@ -66,17 +77,14 @@ class Evaluator:
 		ax[0].annotate(text, xy=(xmin, ymin), xytext=(0.94,0.96), **kw)
 		###########################
 
-		ax[0].plot(x, self.tloss, '-o', markersize=3)
-		ax[0].plot(x, self.vloss, '-o', markersize=3)
-		ax[0].set_ylabel('Loss')
-
-		ax[1].plot(x, self.taccs,  '-o', label='Training', markersize=3)
-		ax[1].plot(x, self.vaccs, '-o', label='Validation', markersize=3)
-		ax[1].set_ylabel('Accuracy')
-
-		ax[2].plot(x, self.tfone, '-o', markersize=3)
-		ax[2].plot(x, self.vfone, '-o', markersize=3)
-		ax[2].set_ylabel('Macro F1')
+		for i, (metric, splits) in enumerate(self.metrics.items()):
+			for split, values in splits.items():
+				if i == 0:
+					ax[i].plot(x, values, '-o', markersize=3, label=split)
+				else:
+					ax[i].plot(x, values, '-o', markersize=3)
+			
+			ax[i].set_ylabel(metric)
 
 		fig.legend()
 		plt.xlabel('Epoch')
@@ -85,23 +93,25 @@ class Evaluator:
 	
 	@staticmethod
 	def compare(*models):
+		
 		evaluators = [Evaluator(m) if type(m) != Evaluator else m for m in models]
 
 		fig, ax = plt.subplots(3, sharex=True)
 		fig.set_figheight(Evaluator.fig_height)
 		fig.set_figwidth(Evaluator.fig_width)
 
-		l = min([*map(lambda ev: len(ev.metrics), evaluators)])
+		l = min([*map(lambda ev: ev.epochs, evaluators)])
 		x = range(1, l + 1)
 
 		for ev in evaluators:
-			ax[0].plot(x, ev.vloss[:l], '-o', markersize=3, label=ev.file)
-			ax[1].plot(x, ev.vaccs[:l], '-o', markersize=3)
-			ax[2].plot(x, ev.vfone[:l], '-o', markersize=3)
+			ax[0].plot(x, ev.metrics['loss']['valid'][:l], '-o', markersize=3, label=ev.file)
+			ax[1].plot(x, ev.metrics['accuracy']['valid'][:l], '-o', markersize=3)
+			ax[2].plot(x, ev.metrics['f1']['valid'][:l], '-o', markersize=3)
 
 		ax[0].set_ylabel('Loss')
 		ax[1].set_ylabel('Accuracy')
 		ax[2].set_ylabel('Macro F1')
+
 		fig.legend()
 		plt.xlabel('Epoch')
 		plt.xticks(x)
