@@ -10,7 +10,7 @@ def eval(y_true, y_pred):
     print(confusion_matrix(y_true, y_pred, labels=categories))
 
 class Evaluator:
-	fig_width = 15
+	fig_width = 10
 	fig_height = 15
 
 	def __init__(self, path):
