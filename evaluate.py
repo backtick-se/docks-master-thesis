@@ -9,9 +9,16 @@ def eval(y_true, y_pred):
     print(classification_report(y_true, y_pred, labels=categories))
     print(confusion_matrix(y_true, y_pred, labels=categories))
 
+def get_figax(num_metrics):
+	num_rows = round(num_metrics / 2)
+	rc = lambda i: int(f'{str(num_rows)}2{i}')
+	fig = plt.figure()
+	ax = [fig.add_subplot(rc(i+1)) for i in range(num_metrics)]
+	return fig, ax
+
 class Evaluator:
-	fig_width = 10
-	fig_height = 15
+	fig_width = 15
+	fig_height = 8
 
 	def __init__(self, path):
 		logging.set_verbosity_error()
@@ -59,7 +66,10 @@ class Evaluator:
 		return categories[pred]
 
 	def plot_progress(self):
-		fig, ax = plt.subplots(len(self.metrics), sharex=True)
+		num_metrics = len(self.metrics)
+		fig, ax = get_figax(num_metrics)
+
+		#fig, ax = plt.subplots(len(self.metrics), sharex=True)
 		fig.suptitle(f'Model Training Progress: {self.file}')
 
 		fig.set_figheight(self.fig_height)
@@ -68,13 +78,16 @@ class Evaluator:
 		x = range(1, self.epochs + 1)
 
 		## Stackoverflow magic ##
-		xmin = x[np.argmin(self.metrics['loss']['valid'])]
-		ymin = min(self.metrics['loss']['valid'])
-		text = f'Best model (loss: {ymin:.3f})'
+		#xmin = x[np.argmin(self.metrics['loss']['valid'])]
+		#ymin = min(self.metrics['loss']['valid'])
+		#text = f'Best model (loss: {ymin:.3f})'
+		xmin = x[np.argmax(self.metrics['f1']['valid'])]
+		ymin = max(self.metrics['f1']['valid'])
+		text = f'Best model (f1: {ymin:.3f})'
 		bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
-		arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=60")
+		arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
 		kw = dict(xycoords='data',textcoords="axes fraction", arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
-		ax[0].annotate(text, xy=(xmin, ymin), xytext=(0.94,0.96), **kw)
+		ax[2].annotate(text, xy=(xmin, ymin), xytext=(0.9,0.1), **kw)
 		###########################
 
 		for i, (metric, splits) in enumerate(self.metrics.items()):
@@ -86,6 +99,9 @@ class Evaluator:
 			
 			ax[i].set_ylabel(metric)
 
+		ax[1].set_ylim([0, 1])
+		ax[2].set_ylim([0, 1])
+
 		fig.legend()
 		plt.xlabel('Epoch')
 		plt.xticks(x)
@@ -96,9 +112,13 @@ class Evaluator:
 		
 		evaluators = [Evaluator(m) if type(m) != Evaluator else m for m in models]
 
-		fig, ax = plt.subplots(3, sharex=True)
+		num_metrics = 3
+		fig, ax = get_figax(num_metrics)
+
+		#fig, ax = plt.subplots(3, sharex=True)
 		fig.set_figheight(Evaluator.fig_height)
 		fig.set_figwidth(Evaluator.fig_width)
+		fig.suptitle(f'Model Comparison: Validation set results')
 
 		l = min([*map(lambda ev: ev.epochs, evaluators)])
 		x = range(1, l + 1)
@@ -107,10 +127,12 @@ class Evaluator:
 			ax[0].plot(x, ev.metrics['loss']['valid'][:l], '-o', markersize=3, label=ev.file)
 			ax[1].plot(x, ev.metrics['accuracy']['valid'][:l], '-o', markersize=3)
 			ax[2].plot(x, ev.metrics['f1']['valid'][:l], '-o', markersize=3)
-
+			
 		ax[0].set_ylabel('Loss')
 		ax[1].set_ylabel('Accuracy')
 		ax[2].set_ylabel('Macro F1')
+		ax[1].set_ylim([0, 1])
+		ax[2].set_ylim([0, 1])
 
 		fig.legend()
 		plt.xlabel('Epoch')
