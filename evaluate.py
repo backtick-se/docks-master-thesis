@@ -86,7 +86,7 @@ class Evaluator:
 			bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
 			arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
 			kw = dict(xycoords='data',textcoords="axes fraction", arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
-			ax.annotate(text, xy=(tx, ty), xytext=(0.9,0.1), **kw)
+			ax.annotate(text, xy=(tx, ty), xytext=(0.9,0.9 + - 0.8*int(maximize)), **kw)
 			###########################
 		
 		annotate_best(
@@ -103,7 +103,7 @@ class Evaluator:
 		)
 
 		annotate_best(
-			ax[1],
+			ax[2],
 			self.metrics['f1']['valid'],
 			lambda y: f"Best f2¨1: {y:.3f}"
 		)
