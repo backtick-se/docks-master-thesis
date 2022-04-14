@@ -32,7 +32,7 @@ def load_ft_data(path, balanced=False):
 
 def load_ex_data(path):
 	df = pd.read_csv(path)
-	labels = df['category']
+	labels = df['category'].replace('issues fixed', 'fix-bugs').replace('new features', 'new-features')
 	inputs = df['title'] + ' ' + df['body'].fillna('') + df['commits'].fillna('')
 	return inputs, labels
 
