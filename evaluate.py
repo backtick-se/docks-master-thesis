@@ -77,7 +77,11 @@ class Evaluator:
 
 		x = range(1, self.epochs + 1)
 
-		def annotate_best(ax, x, y, text):
+		def annotate_best(ax, ys, text, maximize=True):
+			geti, gety = (np.argmax, max) if maximize else (np.argmin, min)
+			x = x[geti(ys)]
+			y = gety(ys)
+			text = text(y)
 			## Stackoverflow magic ##
 			bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
 			arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
@@ -87,23 +91,21 @@ class Evaluator:
 		
 		annotate_best(
 			ax[0],
-			x[np.argmin(self.metrics['loss']['valid'])],
-			min(self.metrics['loss']['valid']),
-			f"Best loss: {min(self.metrics['loss']['valid']):.3f}"
+			self.metrics['loss']['valid'],
+			lambda y: f"Best loss: {y:.3f}"
+			maximize=False
 		)
 
 		annotate_best(
 			ax[1],
-			x[np.argmax(self.metrics['accuracy']['valid'])],
-			max(self.metrics['accuracy']['valid']),
-			f"Best accuracy: {max(self.metrics['accuracy']['valid']):.3f}"
+			self.metrics['accuracy']['valid'],
+			lambda y: f"Best accuracy: {y:.3f}"
 		)
 
 		annotate_best(
-			ax[2],
-			x[np.argmax(self.metrics['f1']['valid'])],
-			max(self.metrics['f1']['valid']),
-			f"Best f1: {max(self.metrics['f1']['valid']):.3f}"
+			ax[1],
+			self.metrics['f1']['valid'],
+			lambda y: f"Best f2¨1: {y:.3f}"
 		)
 
 		for i, (metric, splits) in enumerate(self.metrics.items()):
