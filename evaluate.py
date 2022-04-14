@@ -119,8 +119,8 @@ class Evaluator:
 		ax[1].set_ylim([0, 1])
 		ax[2].set_ylim([0, 1])
 
-		fig.legend()
-		plt.xlabel('Epoch', loc='lower right')
+		fig.legend(loc='center', bbox_to_anchor=(0.75, 0.3))
+		plt.xlabel('Epoch')
 		plt.xticks(x)
 		plt.show()
 	
@@ -151,7 +151,7 @@ class Evaluator:
 		ax[1].set_ylim([0, 1])
 		ax[2].set_ylim([0, 1])
 
-		fig.legend()
-		plt.xlabel('Epoch', loc='lower right')
+		fig.legend(loc='center', bbox_to_anchor=(0.75, 0.3))
+		plt.xlabel('Epoch')
 		plt.xticks(x)
 		plt.show()
