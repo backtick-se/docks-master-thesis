@@ -1,4 +1,5 @@
 import pickle
+import pandas as pd
 from markdown import markdown
 from bs4 import BeautifulSoup as bf
 from packaging import version
@@ -28,6 +29,12 @@ def load_ft_data(path, balanced=False):
 	labels = [*map(lambda row: ptrn.match(row).group(1), ft_data)]
 	titles = [*map(lambda row: ptrn.match(row).group(2), ft_data)]
 	return titles, labels
+
+def load_ex_data(path):
+	df = pd.read_csv(path)
+	labels = df['category']
+	inputs = df['title'] + ' ' + df['body'].fillna('') + df['commits'].fillna('')
+	return inputs, labels
 
 # Load file
 def load(file):
