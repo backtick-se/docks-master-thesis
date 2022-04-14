@@ -78,7 +78,6 @@ class Evaluator:
 		x = range(1, self.epochs + 1)
 
 		def annotate_best(ax, x, y, text):
-			text = text(y)
 			## Stackoverflow magic ##
 			bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
 			arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
