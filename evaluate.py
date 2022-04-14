@@ -77,18 +77,35 @@ class Evaluator:
 
 		x = range(1, self.epochs + 1)
 
-		## Stackoverflow magic ##
-		#xmin = x[np.argmin(self.metrics['loss']['valid'])]
-		#ymin = min(self.metrics['loss']['valid'])
-		#text = f'Best model (loss: {ymin:.3f})'
-		xmin = x[np.argmax(self.metrics['f1']['valid'])]
-		ymin = max(self.metrics['f1']['valid'])
-		text = f'Best model (f1: {ymin:.3f})'
-		bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
-		arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
-		kw = dict(xycoords='data',textcoords="axes fraction", arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
-		ax[2].annotate(text, xy=(xmin, ymin), xytext=(0.9,0.1), **kw)
-		###########################
+		def annotate_best(ax, x, y, text):
+			text = text(y)
+			## Stackoverflow magic ##
+			bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
+			arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
+			kw = dict(xycoords='data',textcoords="axes fraction", arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
+			ax.annotate(text, xy=(x, y), xytext=(0.9,0.1), **kw)
+			###########################
+		
+		annotate_best(
+			ax[0],
+			x[np.argmin(self.metrics['loss']['valid'])],
+			min(self.metrics['loss']['valid']),
+			f"Best loss: {min(self.metrics['loss']['valid']):.3f}"
+		)
+
+		annotate_best(
+			ax[1],
+			x[np.argmax(self.metrics['accuracy']['valid'])],
+			max(self.metrics['accuracy']['valid']),
+			f"Best accuracy: {max(self.metrics['accuracy']['valid']):.3f}"
+		)
+
+		annotate_best(
+			ax[2],
+			x[np.argmax(self.metrics['f1']['valid'])],
+			max(self.metrics['f1']['valid']),
+			f"Best f1: {max(self.metrics['f1']['valid']):.3f}"
+		)
 
 		for i, (metric, splits) in enumerate(self.metrics.items()):
 			for split, values in splits.items():
