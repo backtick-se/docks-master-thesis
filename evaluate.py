@@ -92,7 +92,7 @@ class Evaluator:
 		annotate_best(
 			ax[0],
 			self.metrics['loss']['valid'],
-			lambda y: f"Best loss: {y:.3f}"
+			lambda y: f"Best loss: {y:.3f}",
 			maximize=False
 		)
 
