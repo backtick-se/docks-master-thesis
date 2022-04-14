@@ -105,7 +105,7 @@ class Evaluator:
 		annotate_best(
 			ax[2],
 			self.metrics['f1']['valid'],
-			lambda y: f"Best f2¨1: {y:.3f}"
+			lambda y: f"Best f1: {y:.3f}"
 		)
 
 		for i, (metric, splits) in enumerate(self.metrics.items()):
