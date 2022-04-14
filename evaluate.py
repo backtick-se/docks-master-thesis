@@ -103,7 +103,7 @@ class Evaluator:
 		ax[2].set_ylim([0, 1])
 
 		fig.legend()
-		plt.xlabel('Epoch')
+		plt.xlabel('Epoch', loc='lower right')
 		plt.xticks(x)
 		plt.show()
 	
@@ -135,6 +135,6 @@ class Evaluator:
 		ax[2].set_ylim([0, 1])
 
 		fig.legend()
-		plt.xlabel('Epoch')
+		plt.xlabel('Epoch', loc='lower right')
 		plt.xticks(x)
 		plt.show()
