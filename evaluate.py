@@ -79,14 +79,14 @@ class Evaluator:
 
 		def annotate_best(ax, ys, text, maximize=True):
 			geti, gety = (np.argmax, max) if maximize else (np.argmin, min)
-			x = x[geti(ys)]
-			y = gety(ys)
-			text = text(y)
+			tx = x[geti(ys)]
+			ty = gety(ys)
+			text = text(ty)
 			## Stackoverflow magic ##
 			bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
 			arrowprops=dict(arrowstyle="->",connectionstyle="angle,angleA=0,angleB=90")
 			kw = dict(xycoords='data',textcoords="axes fraction", arrowprops=arrowprops, bbox=bbox_props, ha="right", va="top")
-			ax.annotate(text, xy=(x, y), xytext=(0.9,0.1), **kw)
+			ax.annotate(text, xy=(tx, ty), xytext=(0.9,0.1), **kw)
 			###########################
 		
 		annotate_best(
