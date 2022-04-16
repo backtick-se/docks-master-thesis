@@ -30,6 +30,19 @@ def load_ft_data(path, balanced=False):
 	titles = [*map(lambda row: ptrn.match(row).group(2), ft_data)]
 	return titles, labels
 
+def load_scraped_data(path):
+	data = load(path)
+	labels = []
+	inputs = []
+
+	for val in data.values():
+		labels.append(val['category'])
+		inputs.append(
+			' '.join([val['title'], val['body'], *val['commit_messages']])
+		)
+	
+	return inputs, labels
+
 def load_ex_data(path):
 	df = pd.read_csv(path)
 	labels = df['category']
