@@ -35,10 +35,12 @@ def load_scraped_data(path):
 	labels = []
 	inputs = []
 
+	emstr = lambda v: v if v else ''
+
 	for val in data.values():
 		labels.append(val['category'])
 		inputs.append(
-			' '.join([val['title'], val['body'], *val['commit_messages']])
+			' '.join([val['title'], emstr(val['body']), *val['commit_messages']])
 		)
 	
 	return inputs, labels
