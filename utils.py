@@ -22,6 +22,14 @@ categories = (
 	'non-functional'
 )
 
+def replace(li, *pairs):
+	for i in range(len(li)):
+		for old, new in pairs:
+			if li[i] == old:
+				li[i] = new
+
+	return li
+
 def load_ft_data(path, balanced=False):
 	ptrn = re.compile('__label__(.*?)\s(.*)')
 	ft_data = load(path)
@@ -43,8 +51,7 @@ def load_scraped_data(path):
 			' '.join([val['title'], emstr(val['body']), *val['commit_messages']])
 		)
 	
-	labels = labels.replace('new features', 'new-features')
-	labels = labels.replace('issues fixed', 'fix-bugs')
+	labels = replace(labels, ('new features', 'new-features'), ('issues fixed', 'fix-bugs'))
 	
 	return inputs, labels
 
