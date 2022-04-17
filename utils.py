@@ -43,6 +43,9 @@ def load_scraped_data(path):
 			' '.join([val['title'], emstr(val['body']), *val['commit_messages']])
 		)
 	
+	labels = labels.replace('new features', 'new-features')
+	labels = labels.replace('issues fixed', 'fix-bugs')
+	
 	return inputs, labels
 
 def load_ex_data(path):
