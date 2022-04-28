@@ -38,6 +38,23 @@ def load_ft_data(path, balanced=False):
 	titles = [*map(lambda row: ptrn.match(row).group(2), ft_data)]
 	return titles, labels
 
+def load_complete_data(path):
+	data = load(path)
+	labels = []
+	inputs = []
+
+	emstr = lambda v: v if v else ''
+
+	for val in data.values():
+		labels.append(val['category'])
+		inputs.append(
+			' '.join([val['title'], emstr(val['body']), *val['commit_messages'], *val['diffs']])
+		)
+
+	labels = replace(labels, ('new features', 'new-features'), ('issues fixed', 'fix-bugs'))
+	
+	return inputs, labels
+
 def load_scraped_data(path):
 	data = load(path)
 	labels = []
