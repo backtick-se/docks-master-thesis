@@ -45,16 +45,21 @@ def load_diff_data(path):
 	inputs = []
 
 	ptrn = re.compile('@@\s.*\s@@')
-
+	
 	for pr in data.values():
 		for diff in pr['diffs']:
+			labels.append(pr['category'])
+			inputs.append(diff)
 
-			meta = ptrn.split(diff)[0]
-			changes = ptrn.split(diff)[1:]
+	# for pr in data.values():
+	# 	for diff in pr['diffs']:
 
-			for change in changes:
-				labels.append(pr['category'])
-				inputs.append(change)
+	# 		meta = ptrn.split(diff)[0]
+	# 		changes = ptrn.split(diff)[1:]
+
+	# 		for change in changes:
+	# 			labels.append(pr['category'])
+	# 			inputs.append(change)
 
 	# ent_ptrn = re.compile('@@\s.*\s@@')
 	# chg_ptrn = re.compile('\n([+-].*)')
