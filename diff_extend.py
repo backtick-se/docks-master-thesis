@@ -26,12 +26,44 @@ include = (
 	'rb',
 	# Go
 	'go',
+	# Swift
+	'swift', 
 	# Web
 	'html', 'htm', 'xml', 'css', 'scss', 'sass', 'xlf', 'less',
 	# General files
 	'json', 'yaml', 'md', 'rst', 'txt', 'yml', 'sh', 'sql'
 )
 
+def get_diffs(rid, pr_num):
+	user, repo = rid.split('/')
+	url = diff_url(user, repo, pr_num)
+	res = requests.get(url)
+
+	if res.status_code == 200:
+		diffs = []
+
+		# Each file is separated by diff --git
+		split = res.text.split('diff --git ')[1:]
+
+		# For every file
+		for entry in split:
+
+			file = entry.split('\n')[0].split(' ')[0]
+
+			# Throws error if no match (no extension)
+			try:
+				filetype = pattern.match(file).group(1)
+			except:
+				filetype = ''
+
+			# If filetype in include, append diff
+			if filetype in include:
+				diffs.append(entry)
+
+		return diffs
+	else:
+		raise ConnectionError('Diff does not exist')
+		
 @click.command()
 @click.option('--file', '-f', help='Dataset file')
 def main(file):
@@ -39,37 +71,13 @@ def main(file):
 
 	extended = {}
 
-	for (id, num), value in tqdm(data.items()):
-		u, r = id.split('/')
-		url = diff_url(u, r, num)
-		res = requests.get(url)
-		
-		if res.status_code == 200:
-			diffs = []
-
-			# Each file is separated by diff --git
-			split = res.text.split('diff --git ')[1:]
-
-			# For every file
-			for entry in split:
-
-				file = entry.split('\n')[0].split(' ')[0]
-
-				# Throws error if no match (no extension)
-				try:
-					filetype = pattern.match(file).group(1)
-				except:
-					filetype = ''
-
-				# If filetype in include, append diff
-				if filetype in include:
-					diffs.append(entry)
-			
+	for (rid, num), value in tqdm(data.items()):
+		try:
+			diffs = get_diffs(rid, num)
 			# Insert this pr with diffs to extended dataset
 			extended[(id, num)] = {**value, 'diffs': diffs}
-
-		else:
-			print(f'Request failed (status {res.status_code})')
+		except ConnectionError:
+			print('Diff fetch failed, skipping')
 	
 	dump(extended, 'out.pickle')
 
