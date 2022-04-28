@@ -46,9 +46,9 @@ def load_diff_data(path):
 
 	for pr in data.values():
 		for diff in pr['diffs']:
-			labels.append(pr['label'])
+			labels.append(pr['category'])
 			inputs.append(diff)
-			
+
 	labels = replace(labels, ('new features', 'new-features'), ('issues fixed', 'fix-bugs'))
 	
 	return inputs, labels
