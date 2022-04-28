@@ -38,6 +38,14 @@ def load_ft_data(path, balanced=False):
 	titles = [*map(lambda row: ptrn.match(row).group(2), ft_data)]
 	return titles, labels
 
+def load_diff_data(path):
+	data = load(path)
+	labels = [*map(lambda pr: pr['category'], data.values())]
+	inputs = [*map(lambda pr: '\n'.join(pr['diffs']), data.values())]
+	labels = replace(labels, ('new features', 'new-features'), ('issues fixed', 'fix-bugs'))
+	
+	return inputs, labels
+
 def load_complete_data(path):
 	data = load(path)
 	labels = []
