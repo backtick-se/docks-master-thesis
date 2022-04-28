@@ -44,17 +44,24 @@ def load_diff_data(path):
 	labels = []
 	inputs = []
 
-	ptrn = re.compile('@@\s.*\s@@')
+	ent_ptrn = re.compile('@@\s.*\s@@')
+	chg_ptrn = re.compile('\n([+-].*)')
 
 	for pr in data.values():
 		for diff in pr['diffs']:
+			changes = chg_ptrn.findall(diff)
 
-			meta = ptrn.split(diff)[0]
-			changes = ptrn.split(diff)[1:]
+			inp = '\n'.join(changes)
 
-			for change in changes:
-				labels.append(pr['category'])
-				inputs.append(change)
+			inputs.append(inp)
+			labels.append(pr['category'])
+
+			#meta = ptrn.split(diff)[0]
+			#changes = ptrn.split(diff)[1:]
+
+			#for change in changes:
+				#labels.append(pr['category'])
+				#inputs.append(change)
 
 	labels = replace(labels, ('new features', 'new-features'), ('issues fixed', 'fix-bugs'))
 	
