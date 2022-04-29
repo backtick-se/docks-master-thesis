@@ -7,7 +7,7 @@ if __name__ == '__main__':
         'distill': True,
         'max_length': 512,
         'batch_size': 32,
-        'num_epochs': 10,
+        'num_epochs': 3,
         'split': 0.8,
         'seed': 42,
         'thaw': 0,
