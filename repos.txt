@@ -1,3 +1,0 @@
-https://github.com/ajenti/ajenti.git
-https://github.com/pallets/flask.git
-https://github.com/backtick-se/cowait.git
