@@ -46,10 +46,6 @@ class DiffTrainer:
 
         self.optimizer = AdamW(self.model.parameters())
 
-        # Either load checkpoint or create a
-        # new path and initialized variables
-        self.PATH = self.load_checkpoint()
-
         # Optimizer to cuda
         for state in self.optimizer.state.values():
             for k, v in state.items():
@@ -59,6 +55,10 @@ class DiffTrainer:
         self.lr_scheduler = get_scheduler(
             name="linear", optimizer=self.optimizer, num_warmup_steps=0, num_training_steps=len(self.train_dataloader)
         )
+
+        # Either load checkpoint or create a
+        # new path and initialized variables
+        self.PATH = self.load_checkpoint()
 
     def show_model(self):
         for name, param in self.model.named_parameters():
