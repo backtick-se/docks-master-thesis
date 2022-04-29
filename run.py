@@ -1,7 +1,7 @@
 from train import DiffTrainer
 
 if __name__ == '__main__':
-    default_config = {
+    config = {
         'rmo': True,
         'per_file': False,
         'distill': True,
@@ -13,5 +13,6 @@ if __name__ == '__main__':
         'thaw': 0,
         'lr': 1e-5,
     }
-    trainer = DiffTrainer('distilbert-base-uncased', 'temp.pickle', )
+    trainer = DiffTrainer('distilbert-base-uncased',
+                          'temp.pickle', config=config)
     trainer.train()
