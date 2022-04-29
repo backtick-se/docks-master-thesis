@@ -53,9 +53,9 @@ def load_diff_data(path):
     ptrn = re.compile('@@\s.*\s@@')
 
     for pr in data.values():
-        for diff in pr['diffs']:
-            labels.append(pr['category'])
-            inputs.append(diff)
+        inp = '\n'.join(pr['diffs'])
+        labels.append(pr['category'])
+        inputs.append(inp)
 
     # for pr in data.values():
     # 	for diff in pr['diffs']:
