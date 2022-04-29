@@ -44,7 +44,7 @@ def load_ft_data(path, balanced=False):
     return titles, labels
 
 
-def load_diff_data(path):
+def load_diff_data(path, distill=False):
     data = load(path)
 
     labels = []
@@ -54,6 +54,12 @@ def load_diff_data(path):
 
     for pr in data.values():
         inp = '\n'.join(pr['diffs'])
+
+        if distill:
+            chg_ptrn = re.compile('\n([+-].*)')
+            changes = chg_ptrn.findall(inp)
+            inp = '\n'.join(changes)
+
         labels.append(pr['category'])
         inputs.append(inp)
 
