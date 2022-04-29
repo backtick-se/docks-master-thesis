@@ -1,0 +1,17 @@
+from train import DiffTrainer
+
+if __name__ == '__main__':
+    default_config = {
+        'rmo': True,
+        'per_file': False,
+        'distill': True,
+        'max_length': 512,
+        'batch_size': 32,
+        'num_epochs': 10,
+        'split': 0.8,
+        'seed': 42,
+        'thaw': 0,
+        'lr': 1e-5,
+    }
+    trainer = DiffTrainer('distilbert-base-uncased', 'temp.pickle', )
+    trainer.train()
