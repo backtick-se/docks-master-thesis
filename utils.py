@@ -44,34 +44,49 @@ def load_ft_data(path, balanced=False):
     return titles, labels
 
 
-def load_diff_data(path, distill=False):
+def distill(diff):
+    chg_ptrn = re.compile('\n([+-].*)')
+    changes = chg_ptrn.findall(diff)
+    inp = '\n'.join(changes)
+    return inp
+
+
+def load_diff_data(path, per_file=False, dis=False):
     data = load(path)
 
     labels = []
     inputs = []
 
-    ptrn = re.compile('@@\s.*\s@@')
-
     for pr in data.values():
-        inp = '\n'.join(pr['diffs'])
-
-        if distill:
-            chg_ptrn = re.compile('\n([+-].*)')
-            changes = chg_ptrn.findall(inp)
-            inp = '\n'.join(changes)
+        if per_file:
+            for diff in pr['diffs']:
+                inp = distill(diff) if dis else diff
+        else:
+            inp = '\n'.join(pr['diffs'])
+            if dis:
+                inp = distill(inp)
 
         labels.append(pr['category'])
         inputs.append(inp)
 
-    # for pr in data.values():
-    # 	for diff in pr['diffs']:
+    # ptrn = re.compile('@@\s.*\s@@')
+    # if not per_file:
+    #     for pr in data.values():
+    #         inp = '\n'.join(pr['diffs'])
+    #         if distill:
+    #             inp = distill(inp)
+    #         labels.append(pr['category'])
+    #         inputs.append(inp)
+    # else:
+    #     for pr in data.values():
+    #         for diff in pr['diffs']:
 
-    # 		meta = ptrn.split(diff)[0]
-    # 		changes = ptrn.split(diff)[1:]
+    #             meta = ptrn.split(diff)[0]
+    #             changes = ptrn.split(diff)[1:]
 
-    # 		for change in changes:
-    # 			labels.append(pr['category'])
-    # 			inputs.append(change)
+    #             for change in changes:
+    #                 labels.append(pr['category'])
+    #                 inputs.append(change)
 
     # ent_ptrn = re.compile('@@\s.*\s@@')
     # chg_ptrn = re.compile('\n([+-].*)')
