@@ -61,13 +61,14 @@ def load_diff_data(path, per_file=False, dis=False):
         if per_file:
             for diff in pr['diffs']:
                 inp = distill(diff) if dis else diff
+                labels.append(pr['category'])
+                inputs.append(inp)
         else:
             inp = '\n'.join(pr['diffs'])
             if dis:
                 inp = distill(inp)
-
-        labels.append(pr['category'])
-        inputs.append(inp)
+            labels.append(pr['category'])
+            inputs.append(inp)
 
     # ptrn = re.compile('@@\s.*\s@@')
     # if not per_file:
