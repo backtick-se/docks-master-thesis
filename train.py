@@ -72,8 +72,12 @@ class DiffTrainer:
 
             # Thaw some encoder layers
             for i in range(thaw):
-                for param in self.model.base_model.transformer.layer[-(i+1)].parameters():
-                    param.requires_grad = True
+                try:
+                    for param in self.model.base_model.transformer.layer[-(i+1)].parameters():
+                            param.requires_grad = True
+                except:
+                    for param in self.model.base_model.encoder.layer[-(i+1)].parameters():
+                        param.requires_grad = False
 
     def load_checkpoint(self):
         thaw = self.config['thaw']
