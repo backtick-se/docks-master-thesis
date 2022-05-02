@@ -52,7 +52,7 @@ class Evaluator:
 			}
 		}
 	
-	def predict(self, input):
+	def predict(self, input, raw=False):
 		inputs = self.tokenizer(
 			input,
 			padding='max_length',
@@ -63,6 +63,10 @@ class Evaluator:
 		outputs = self.model(**inputs)
 		logits = outputs.logits
 		pred = torch.argmax(logits, dim=-1)
+
+		if raw:
+			return logits
+			
 		return categories[pred]
 
 	def plot_progress(self):
